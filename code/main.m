@@ -18,6 +18,10 @@ outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
 nOutbreaks = length(outbreakLbl);
 for iOutbreak = 1:nOutbreaks
 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Data
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     % File name with raw data
     fNameData = sprintf('%s_processed.csv', outbreakLbl(iOutbreak));
 
