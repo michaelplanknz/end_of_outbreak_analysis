@@ -8,12 +8,14 @@ close all
 dataFolder = "../processed_data/";
 resultsFolder = "../results/";
 
-
+% Outbreak labels (processed data files should be in the form
+% label_processed.csv)
 outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
 
 
-nOutbreaks = length(outbreakLbl);
 
+% Analyse each outbreak in turn
+nOutbreaks = length(outbreakLbl);
 for iOutbreak = 1:nOutbreaks
 
     % File name with raw data

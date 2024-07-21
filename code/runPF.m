@@ -29,7 +29,7 @@ function [Rt, It, Yt, Zt, Ct, GammaRT, ESS, LL] = runPF(t, nCasesLoc, nInfImp, p
 %          Zt - matrix of infections by assigned date of report (independent of whether they actually reported as a case or not)  - (i,j) element corresponds to particle i on day j
 %          Ct - matrix of simulated daily cases  - (i,j) element corresponds to particle i on day j
 %          ESS - vector of the number of unique particles at each time step
-%          LL - log lilelihood - can be used in PMMH to fit fixed parameters
+%          LL - particle marginal log likelihood - can be used in PMMH to fit fixed parameters
 
 
 GTDF = [1, 1-cumsum(par.GTD)];      % Pad the survival function with a leading 1 as the first element applies to t  he previous days infections, which have all of their transmission potential remaining the next day
@@ -44,6 +44,7 @@ Yt = zeros(par.nParticles, nSteps);
 GammaRT = zeros(par.nParticles, nSteps);
 Zt = zeros(par.nParticles, nSteps);
 ESS = par.nParticles*ones(nSteps, 1);
+lmw = zeros(1, nSteps);
 
 
 % For the inital value of Rt (needed for first time step), draw from priors 
@@ -55,7 +56,6 @@ else
    Yt(:, 1) = nInfImp(1);
 end
 
-LL = 0;
 % Loop through time steps
 for iStep = 2:nSteps
    Rt(:, iStep) = max(0, Rt(:, iStep-1) + par.deltat(iStep) + par.sigmat(iStep)*randn(par.nParticles, 1));        
@@ -85,7 +85,7 @@ for iStep = 2:nSteps
         else
             error(sprintf('Invalid observation model: %s', par.obsModel));
         end
-        LL = LL + log(mean(weights));
+        lmw(iStep) = log(mean(weights));
         
         resampInd = randsample(par.nParticles, par.nParticles, true, weights);
 
@@ -103,6 +103,8 @@ for iStep = 2:nSteps
    end
 
 end
+
+LL = sum(lmw);
 
  % Generate samples from the reported case distribution to construct
  % prediction intervals:
