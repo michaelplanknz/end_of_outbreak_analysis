@@ -10,7 +10,7 @@ resultsFolder = "../results/";
 
 
 outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
-%outbreakLbl = ["ebola_DRC_2018"];
+outbreakLbl = ["ebola_DRC_2018"];
 
 
 nOutbreaks = length(outbreakLbl);
@@ -134,7 +134,7 @@ for iOutbreak = 1:nOutbreaks
     if outbreakLbl(iOutbreak) == "covid_NZ_2020"
        xlim([datetime(2020, 4, 15), datetime(2020, 6, 15)])
     elseif outbreakLbl(iOutbreak) == "ebola_DRC_2018"
-       xlim([datetime(2018, 6, 1), datetime(2018, 8, 14)])
+       xlim([datetime(2018, 6, 14), datetime(2018, 8, 14)])
     end
 
 end

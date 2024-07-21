@@ -56,7 +56,7 @@ elseif outbreakLbl == "ebola_DRC_2018"
     
     t = date0-par.tInfImp:date1;
     
-    par.resampleLag = inf;     % fixed lag resampling
+    par.resampleLag = 30;     % fixed lag resampling
     
     par.sigmaR = 0.02;          % S.D. in random walk step for R
     par.k = inf;                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
