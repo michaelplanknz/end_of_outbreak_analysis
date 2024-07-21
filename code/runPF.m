@@ -1,4 +1,4 @@
-function [Rt, It, Yt, Zt, Ct, GammaRT, LL, ESS] = runPF(t, nCasesLoc, nInfImp, par)
+function [Rt, It, Yt, Zt, Ct, GammaRT, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par)
 
 % Function to run the particle filter on given input data
 %
@@ -8,15 +8,28 @@ function [Rt, It, Yt, Zt, Ct, GammaRT, LL, ESS] = runPF(t, nCasesLoc, nInfImp, p
 %         nCasesLoc - corresponding vector of daily local cases
 %         nInfImp - correspodnig time series of daily imported infecitons
 %         (seed cases)
-%         par - structure of model parameters
+%         par - structure of model parameters with fields
+%         - par.nParticles - number of particles to use
+%         - par.GTD - vector of probability masses for generation time t = 1, 2, .. days
+%         - par.RTD - vector of probability masses for infection to reporting time t = 0, 1, 2, .. days
+%         - par.R_shape, par.R_scale - shape and scale parameters for the
+%         prior distribution for initial Rt
+%         - par.k - dispersion parameter for individual transmissibility (inf for Poisson offspring)
+%         - par.deltat, par.sigmat - vector (of same length as t) of means and s.d. for the daily change in Rt 
+%         - par.obsModel - noise model for observed daily cases data, either
+%         "bin" or "negbin" 
+%         - par.kObs (if obsModel is "negbin") - dispersion parameter for
+%         observed daily cases (inf for Poisson dist)
+%         - par.pReport - probability of infecitons being reported as cases
+%         - par.resampleLag - fixed lag (number of time steps) for bootstrap particle filter resampling
 %
 % OUTPUTS: Rt - matrix of reproduction numbers - (i,j) element corresponds to particle i on day j
 %          It - matrix of daily infections  - (i,j) element corresponds to particle i on day j
 %          Yt - matrix of transmissibility of people infected on a given day - (i,j) element corresponds to particle i on day j
 %          Zt - matrix of infections by assigned date of report (independent of whether they actually reported as a case or not)  - (i,j) element corresponds to particle i on day j
 %          Ct - matrix of simulated daily cases  - (i,j) element corresponds to particle i on day j
-%          LL - vector of log lilelihoods for each particle
 %          ESS - vector of the number of unique particles at each time step
+%          LL - log lilelihood - can be used in PMMH to fit fixed parameters
 
 
 GTDF = [1, 1-cumsum(par.GTD)];      % Pad the survival function with a leading 1 as the first element applies to t  he previous days infections, which have all of their transmission potential remaining the next day
@@ -30,7 +43,6 @@ It = zeros(par.nParticles, nSteps);
 Yt = zeros(par.nParticles, nSteps);
 GammaRT = zeros(par.nParticles, nSteps);
 Zt = zeros(par.nParticles, nSteps);
-LL = zeros(par.nParticles, nSteps);
 ESS = par.nParticles*ones(nSteps, 1);
 
 
@@ -43,7 +55,7 @@ else
    Yt(:, 1) = nInfImp(1);
 end
 
-
+LL = 0;
 % Loop through time steps
 for iStep = 2:nSteps
    Rt(:, iStep) = max(0, Rt(:, iStep-1) + par.deltat(iStep) + par.sigmat(iStep)*randn(par.nParticles, 1));        
@@ -73,7 +85,7 @@ for iStep = 2:nSteps
         else
             error(sprintf('Invalid observation model: %s', par.obsModel));
         end
-        LL(:, iStep) = log(weights);
+        LL = LL + log(mean(weights));
         
         resampInd = randsample(par.nParticles, par.nParticles, true, weights);
 
@@ -88,7 +100,6 @@ for iStep = 2:nSteps
         It(:, iResample:end) = It(resampInd, iResample:end);
         Yt(:, iResample:end) = Yt(resampInd, iResample:end);
         Zt(:, iResample:end) = Zt(resampInd, iResample:end);
-        LL(:, iResample:end) = LL(resampInd, iResample:end);
    end
 
 end

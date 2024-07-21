@@ -10,7 +10,6 @@ resultsFolder = "../results/";
 
 
 outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
-outbreakLbl = ["ebola_DRC_2018"];
 
 
 nOutbreaks = length(outbreakLbl);
@@ -50,7 +49,7 @@ for iOutbreak = 1:nOutbreaks
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Run particle filter
-    [Rt, It, Yt, Zt, Ct, GammaRT, LL, ESS] = runPF(t, nCasesLoc, nInfImp, par);
+    [Rt, It, Yt, Zt, Ct, GammaRT, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par);
     
     % Calculate pre-intervention R for each particle
     RpreInt = mean( Rt(:, t >= par.tRampStart-par.preIntWindow & t < par.tRampStart), 2);
