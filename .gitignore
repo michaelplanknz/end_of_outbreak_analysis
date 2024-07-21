@@ -1,0 +1,8 @@
+papers/
+*.asv
+*.pdf
+*.docx
+*.log
+*.aux
+
+
