@@ -62,8 +62,9 @@ elseif outbreakLbl == "ebola_DRC_2018"
     par.k = inf;                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
 
     par.pReport = 1;          % Reporting probability
-    par.obsModel = "bin";      %  binomial daily observation model 
-    
+    par.obsModel = "bin";     %  binomial daily observation model 
+    par.kObs = inf;             % overdispersion parameter for daily observed cases (set to inf for a Poisson distribution, ignored if par.obsModel is "bin")
+
     
     [par.R_shape, par.R_scale] = gamShapeScale(2.5, 1 );                    % shape-scale parameters for prior for initial R
     
@@ -74,7 +75,9 @@ elseif outbreakLbl == "ebola_DRC_2018"
 
     % Infection to report time distribution parameters
     reportDelayFlag = 0;
-    
+    RTmax = 30;
+    [RTD_shape, RTD_scale] = gamShapeScale(11.2, 4.72);                   % mean and variance of incubation plus onset to isolation plus isolation to reporting
+    pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));    
     
     par.preIntWindow = 14;              % days before ramp start to use as a window for estimating per-intervention Rt
     

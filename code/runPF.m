@@ -81,13 +81,15 @@ for iStep = 2:nSteps
         elseif par.obsModel == "negbin" & ~isfinite(par.kObs)
            weights = poisspdf(nCasesLoc(iStep), par.pReport*Zt(:, iStep) );
         elseif par.obsModel =="bin"
-            weights = binopdf(nCasesLoc(iStep), Zt(:, iStep), par.pReport );
+            Zt_int = stochRand(Zt(:, iStep));       % need to do stochastic rounding of Zt to nearest integer for the purpose of calulcating binomial probabilities - this is an approximation as it ignores dependence of Zt between days and may not preserve the correct total number of reported cases 
+            weights = binopdf(nCasesLoc(iStep), Zt_int, par.pReport );
         else
             error(sprintf('Invalid observation model: %s', par.obsModel));
         end
         lmw(iStep) = log(mean(weights));
         
         resampInd = randsample(par.nParticles, par.nParticles, true, weights);
+
 
         ESS(iStep) = length(unique(resampInd));
 
