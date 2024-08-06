@@ -12,7 +12,6 @@ if outbreakLbl == "covid_NZ_2020"
     par.tMIQ = datetime(2020, 4, 10);               % Imported cases after this date will be ignored
     par.tInfImp = 7;                          % 3 - number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
     
-    t = date0-par.tInfImp:date1;
     
     par.resampleLag = 30;       % fixed lag resampling
     
@@ -54,8 +53,6 @@ elseif outbreakLbl == "ebola_DRC_2018"
     par.tMIQ = NaT;               % Imported cases after this date will be ignored
     par.tInfImp = 0;                          % 3 - number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
     
-    t = date0-par.tInfImp:date1;
-    
     par.resampleLag = 30;     % fixed lag resampling
     
     par.sigmaR = 0.02;          % S.D. in random walk step for R
@@ -88,6 +85,9 @@ elseif outbreakLbl == "ebola_DRC_2018"
 else
     error(sprintf('Invalid outbreak label: %s', outbreakLbl));
 end
+
+% Time vector
+t = date0-par.tInfImp:date1;
 
 
 % Consturct GT and reporting time distributions
