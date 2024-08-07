@@ -41,7 +41,7 @@ for iOutbreak = 1:nOutbreaks
     % unreported imported infections
     nInfImp = [nCasesImp(1+par.tInfImp:end), zeros(1, par.tInfImp)];       % imported infections assumed to occur par.tInfImp days before reported
     nInfImp(t > par.tMIQ) = 0;                                                  % ignore imported cases with assigned infection date after introduction of MIQ
-    nUndetTot = (1-par.pReport)/par.pReport*sum(nInfImp);                       % number of undetected imported cases, under assumed rpeorting probability
+    nUndetTot = round((1-par.pReport)/par.pReport*sum(nInfImp));                       % number of undetected imported cases, under assumed rpeorting probability
     tUndet = randsample(length(nInfImp), nUndetTot, true, nInfImp );            % sample time (index) of undetected cases by reampling with replacement from detected cases
     nUndet = histcounts(tUndet, 1:length(nInfImp)+1);                             % number of undetected cases on each day
     nInfImp = nInfImp + nUndet;                                                 % add undeteced cases to data time series
@@ -54,7 +54,7 @@ for iOutbreak = 1:nOutbreaks
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Run particle filter
-    [Rt, It, Yt, Zt, Ct, GammaRT, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par);
+    [Rt, It, Yt, Zt, Ct, GammaRT, PhiRT, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par);
     
     % Calculate pre-intervention R for each particle
     RpreInt = mean( Rt(:, t >= par.tRampStart-par.preIntWindow & t < par.tRampStart), 2);
@@ -79,15 +79,18 @@ for iOutbreak = 1:nOutbreaks
     % Probability of ultimate extinction
     PUE = exp(-(1-PUE1).*RpreInt.*GammaRT);
     PUEAvg = mean(PUE);
-    
-    % Probability of no further infections after time t given the benefit of
-    % hindsight
-    pEndHind = exp(-RpreInt.*Gamma);
-    pEndHindAvg = mean(pEndHind);
-    
-    % Probability of ultimate extinction
-    PUEHind = exp(-(1-PUE1).*RpreInt.*Gamma);
-    PUEHindAvg = mean(PUEHind);
+
+    pNothing = exp(-RpreInt.*GammaRT) .* PhiRT;
+    pNothingAvg = mean(pNothing);
+
+    % % Probability of no further infections after time t given the benefit of
+    % % hindsight
+    % pEndHind = exp(-RpreInt.*Gamma);
+    % pEndHindAvg = mean(pEndHind);
+    % 
+    % % Probability of ultimate extinction
+    % PUEHind = exp(-(1-PUE1).*RpreInt.*Gamma);
+    % PUEHindAvg = mean(PUEHind);
     
     
     
@@ -132,13 +135,14 @@ for iOutbreak = 1:nOutbreaks
     ylabel('simulated daily cases')
     
     figure;
-    plot(t, pEndAvg, t, PUEAvg, '-', t, pEndHindAvg, '--', t, PUEHindAvg, '--')
+    plot(t, PUEAvg, '-', t, pEndAvg, '-', t, pNothingAvg, '-' )%, t, pEndHindAvg, '--', t, PUEHindAvg, '--')
     ylabel('p(end of outbreak)')
-    legend("no more infections (real-time)", 'ultimate extinction (real-time)',  'no more infections (full)', 'ultimate extinction (full)', 'Location', 'northwest')
+    %legend("no more infections (real-time)", 'ultimate extinction (real-time)',  'no more infections (full)', 'ultimate extinction (full)', 'Location', 'northwest')
+    legend('ultimate extinction', 'no future infections', "no future infections or reported cases", 'Location', 'northwest')
     if outbreakLbl(iOutbreak) == "covid_NZ_2020"
        xlim([datetime(2020, 4, 15), datetime(2020, 6, 15)])
     elseif outbreakLbl(iOutbreak) == "ebola_DRC_2018"
-       xlim([datetime(2018, 6, 14), datetime(2018, 8, 14)])
+       xlim([datetime(2018, 6, 14), datetime(2018, 8, 24)])
     end
 
 end

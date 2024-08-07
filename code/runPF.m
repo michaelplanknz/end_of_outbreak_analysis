@@ -1,4 +1,4 @@
-function [Rt, It, Yt, Zt, Ct, GammaRT, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par)
+function [Rt, It, Yt, Zt, Ct, GammaRT, PhiRT, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par)
 
 % Function to run the particle filter on given input data
 %
@@ -28,11 +28,15 @@ function [Rt, It, Yt, Zt, Ct, GammaRT, ESS, LL] = runPF(t, nCasesLoc, nInfImp, p
 %          Yt - matrix of transmissibility of people infected on a given day - (i,j) element corresponds to particle i on day j
 %          Zt - matrix of infections by assigned date of report (independent of whether they actually reported as a case or not)  - (i,j) element corresponds to particle i on day j
 %          Ct - matrix of simulated daily cases  - (i,j) element corresponds to particle i on day j
+%          GammaRT - matrix of gamma(t) values calculating in real tme (i.e. only using data availab le up to time t)
+%          PhiRT
 %          ESS - vector of the number of unique particles at each time step
 %          LL - particle marginal log likelihood - can be used in PMMH to fit fixed parameters
 
 
 GTDF = [1, 1-cumsum(par.GTD)];      % Pad the survival function with a leading 1 as the first element applies to t  he previous days infections, which have all of their transmission potential remaining the next day
+RTDC = cumsum(par.RTD);
+
 
 nSteps = length(t);
 iLastData = length(nCasesLoc);
@@ -42,6 +46,7 @@ Rt = zeros(par.nParticles, nSteps);
 It = zeros(par.nParticles, nSteps);
 Yt = zeros(par.nParticles, nSteps);
 GammaRT = zeros(par.nParticles, nSteps);
+PhiRT = zeros(par.nParticles, nSteps);
 Zt = zeros(par.nParticles, nSteps);
 ESS = par.nParticles*ones(nSteps, 1);
 lmw = zeros(1, nSteps);
@@ -69,12 +74,18 @@ for iStep = 2:nSteps
        Yt(:, iStep) = It(:, iStep) + nInfImp(iStep);
    end
    GammaRT(:, iStep) = sum(GTDF(1:length(ind)).*Yt(:, ind), 2 );
+
+   % ind = iStep-1:-1:max(1, iStep-length(RTDC) );
+   % PhiRT(:, iStep) = prod( RTDC(1:length(ind)) .^ It(:, ind), 2   );        % Pr(all previous infections have been reporterd)
+
+
 %   ind = iStep:-1:max(1, iStep+1-length(par.RTD));
 %   Zt(:, iStep) = sum(par.RTD(1:length(ind)) .* (It(:, ind)), 2);             % infections by date of report
    futureCases = mnrnd( It(:, iStep), par.RTD  );
    ind = iStep:min(iStep+length(par.RTD)-1, nSteps);
    Zt(:, ind) = Zt(:, ind) + futureCases(:, 1:length(ind));
-
+   
+   PhiRT(:, iStep) = sum(Zt(:, iStep:end), 2 ) == 0;                             % Pr(all previous infections have been reporterd)
 
    % Particle resampling (only during period for which data is available)
    if iStep <= iLastData

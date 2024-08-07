@@ -48,10 +48,10 @@ if outbreakLbl == "covid_NZ_2020"
 elseif outbreakLbl == "ebola_DRC_2018"
 
     date0 = datetime(2018, 4, 5);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
-    date1 = datetime(2018, 8, 14);           % End date for simulation (anything up to 10 August 2020 which was last day of zero reported cases)
+    date1 = datetime(2018, 8, 31);           % End date for simulation 
     
     par.tMIQ = NaT;               % Imported cases after this date will be ignored
-    par.tInfImp = 0;                          % 3 - number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
+    par.tInfImp = 6;                          % 3 - number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
     
     par.resampleLag = 30;     % fixed lag resampling
     
@@ -59,7 +59,7 @@ elseif outbreakLbl == "ebola_DRC_2018"
     par.k = inf;                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
 
     par.pReport = 1;          % Reporting probability
-    par.obsModel = "bin";     %  binomial daily observation model 
+    par.obsModel = "negbin";     %  binomial daily observation model 
     par.kObs = inf;             % overdispersion parameter for daily observed cases (set to inf for a Poisson distribution, ignored if par.obsModel is "bin")
 
     
@@ -71,9 +71,9 @@ elseif outbreakLbl == "ebola_DRC_2018"
     pdfFnGTD = @(x)(gampdf(x, GTD_shape, GTD_scale ));
 
     % Infection to report time distribution parameters
-    reportDelayFlag = 0;
+    reportDelayFlag = 1;
     RTmax = 30;
-    [RTD_shape, RTD_scale] = gamShapeScale(11.2, 4.72);                   % mean and variance of incubation plus onset to isolation plus isolation to reporting
+    [RTD_shape, RTD_scale] = gamShapeScale(6.2, 2);                   % mean and variance of incubation plus onset to isolation plus isolation to reporting
     pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));    
     
     par.preIntWindow = 14;              % days before ramp start to use as a window for estimating per-intervention Rt
