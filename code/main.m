@@ -13,7 +13,6 @@ resultsFolder = "../results/";
 outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
 
 
-
 % Analyse each outbreak in turn
 nOutbreaks = length(outbreakLbl);
 for iOutbreak = 1:nOutbreaks

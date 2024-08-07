@@ -69,9 +69,11 @@ for iStep = 2:nSteps
        Yt(:, iStep) = It(:, iStep) + nInfImp(iStep);
    end
    GammaRT(:, iStep) = sum(GTDF(1:length(ind)).*Yt(:, ind), 2 );
-   ind = iStep:-1:max(1, iStep+1-length(par.RTD));
-   Zt(:, iStep) = sum(par.RTD(1:length(ind)) .* (It(:, ind)), 2);             % infections by date of report
-
+%   ind = iStep:-1:max(1, iStep+1-length(par.RTD));
+%   Zt(:, iStep) = sum(par.RTD(1:length(ind)) .* (It(:, ind)), 2);             % infections by date of report
+   futureCases = mnrnd( It(:, iStep), par.RTD  );
+   ind = iStep:min(iStep+length(par.RTD)-1, nSteps);
+   Zt(:, ind) = Zt(:, ind) + futureCases(:, 1:length(ind));
 
 
    % Particle resampling (only during period for which data is available)
@@ -81,15 +83,14 @@ for iStep = 2:nSteps
         elseif par.obsModel == "negbin" & ~isfinite(par.kObs)
            weights = poisspdf(nCasesLoc(iStep), par.pReport*Zt(:, iStep) );
         elseif par.obsModel =="bin"
-            Zt_int = stochRand(Zt(:, iStep));       % need to do stochastic rounding of Zt to nearest integer for the purpose of calulcating binomial probabilities - this is an approximation as it ignores dependence of Zt between days and may not preserve the correct total number of reported cases 
-            weights = binopdf(nCasesLoc(iStep), Zt_int, par.pReport );
+           % Zt_int = stochRand(Zt(:, iStep));       % need to do stochastic rounding of Zt to nearest integer for the purpose of calulcating binomial probabilities - this is an approximation as it ignores dependence of Zt between days and may not preserve the correct total number of reported cases 
+            weights = binopdf(nCasesLoc(iStep), Zt(:, iStep), par.pReport );
         else
             error(sprintf('Invalid observation model: %s', par.obsModel));
         end
         lmw(iStep) = log(mean(weights));
         
         resampInd = randsample(par.nParticles, par.nParticles, true, weights);
-
 
         ESS(iStep) = length(unique(resampInd));
 
