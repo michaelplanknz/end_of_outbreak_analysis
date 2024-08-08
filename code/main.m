@@ -127,16 +127,17 @@ for iOutbreak = 1:nOutbreaks
     
     figure;
     yyaxis left
-    bar(processed.t, [processed.nCasesLoc, processed.nCasesImp]', 'stacked' )
+    bh = bar(processed.t, [processed.nCasesImp, processed.nCasesLoc]', 'stacked' );
+    bh(1).FaceColor =  [0.67578 0.84375 0.89844];  
+    bh(2).FaceColor = [0 0 1]; 
+    ylabel('reported daily cases')
     yyaxis right
-    plot(t, PUEAvg, ':', t, pEndAvg, '--', t, pNothingAvg, '-' )
-    ylabel('p(end of outbreak)')
-    legend('data - local cases', 'data - imported cases',  'ultimate extinction', 'no future infections', "no future infections or reported cases", 'Location', 'northwest')
-    xlim( [processed.t(1), t(end)  ] )
-    % if outbreakLbl(iOutbreak) == "covid_NZ_2020"
-    %    xlim([datetime(2020, 4, 15), datetime(2020, 6, 15)])
-    % elseif outbreakLbl(iOutbreak) == "ebola_DRC_2018"
-    %    xlim([datetime(2018, 6, 14), datetime(2018, 8, 24)])
-    % end
+    plot(t, PUEAvg, 'b-', t, pEndAvg, 'b--', t, pNothingAvg, 'b:' )
+    ylabel('P(end of outbreak)')
+    legend('data - imported cases', 'data - local cases',  'ultimate extinction', 'no future transmission', "no future transmission or reported cases", 'Location', 'northwest')
+    xlim( [processed.t(1)-1, t(end)  ] )
+    ax = gca;
+    ax.YAxis(1).Color = 'k';
+    ax.YAxis(2).Color = 'k';
 
 end
