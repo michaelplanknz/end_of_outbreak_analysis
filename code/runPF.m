@@ -95,15 +95,20 @@ for iStep = 2:nSteps
            weights = poisspdf(nCasesLoc(iStep), par.pReport*Zt(:, iStep) );
            PhiRT(:, iStep) = poisspdf(0, par.pReport * sum(Zt(:, iStep:end), 2 ) );                             % Pr(no future reported cases from existing infections)
         elseif par.obsModel =="bin"
-           % Zt_int = stochRand(Zt(:, iStep));       % need to do stochastic rounding of Zt to nearest integer for the purpose of calulcating binomial probabilities - this is an approximation as it ignores dependence of Zt between days and may not preserve the correct total number of reported cases 
-            weights = binopdf(nCasesLoc(iStep), Zt(:, iStep), par.pReport );
+            if max( Zt(:, iStep)) < nCasesLoc(iStep)
+                weights = Zt(:, iStep) == max(Zt(:, iStep));
+                fprintf('Warning: at time step %i/%i, max Zt = %i and reported cases = %i, using particles with maximal Zt\n', iStep, nSteps, max(Zt(:, iStep), nCasesLoc(iStep)))
+            else
+                weights = binopdf(nCasesLoc(iStep), Zt(:, iStep), par.pReport );
+            end
             PhiRT(:, iStep) = binopdf(0, sum(Zt(:, iStep:end), 2 ), par.pReport );
         else
             error(sprintf('Invalid observation model: %s', par.obsModel));
         end
         lmw(iStep) = log(mean(weights));
         
-        resampInd = randsample(par.nParticles, par.nParticles, true, weights);
+
+       resampInd = randsample(par.nParticles, par.nParticles, true, weights);
 
         ESS(iStep) = length(unique(resampInd));
 
