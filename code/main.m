@@ -83,16 +83,7 @@ for iOutbreak = 1:nOutbreaks
     pNothing = exp(-RpreInt.*GammaRT) .* PhiRT;
     pNothingAvg = mean(pNothing);
 
-    % % Probability of no further infections after time t given the benefit of
-    % % hindsight
-    % pEndHind = exp(-RpreInt.*Gamma);
-    % pEndHindAvg = mean(pEndHind);
-    % 
-    % % Probability of ultimate extinction
-    % PUEHind = exp(-(1-PUE1).*RpreInt.*Gamma);
-    % PUEHindAvg = mean(PUEHind);
-    
-    
+
     
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -135,14 +126,17 @@ for iOutbreak = 1:nOutbreaks
     ylabel('simulated daily cases')
     
     figure;
-    plot(t, PUEAvg, '-', t, pEndAvg, '-', t, pNothingAvg, '-' )%, t, pEndHindAvg, '--', t, PUEHindAvg, '--')
+    yyaxis left
+    bar(processed.t, [processed.nCasesLoc, processed.nCasesImp]', 'stacked' )
+    yyaxis right
+    plot(t, PUEAvg, ':', t, pEndAvg, '--', t, pNothingAvg, '-' )
     ylabel('p(end of outbreak)')
-    %legend("no more infections (real-time)", 'ultimate extinction (real-time)',  'no more infections (full)', 'ultimate extinction (full)', 'Location', 'northwest')
-    legend('ultimate extinction', 'no future infections', "no future infections or reported cases", 'Location', 'northwest')
-    if outbreakLbl(iOutbreak) == "covid_NZ_2020"
-       xlim([datetime(2020, 4, 15), datetime(2020, 6, 15)])
-    elseif outbreakLbl(iOutbreak) == "ebola_DRC_2018"
-       xlim([datetime(2018, 6, 14), datetime(2018, 8, 24)])
-    end
+    legend('data - local cases', 'data - imported cases',  'ultimate extinction', 'no future infections', "no future infections or reported cases", 'Location', 'northwest')
+    xlim( [processed.t(1), t(end)  ] )
+    % if outbreakLbl(iOutbreak) == "covid_NZ_2020"
+    %    xlim([datetime(2020, 4, 15), datetime(2020, 6, 15)])
+    % elseif outbreakLbl(iOutbreak) == "ebola_DRC_2018"
+    %    xlim([datetime(2018, 6, 14), datetime(2018, 8, 24)])
+    % end
 
 end

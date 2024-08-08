@@ -85,17 +85,19 @@ for iStep = 2:nSteps
    ind = iStep:min(iStep+length(par.RTD)-1, nSteps);
    Zt(:, ind) = Zt(:, ind) + futureCases(:, 1:length(ind));
    
-   PhiRT(:, iStep) = sum(Zt(:, iStep:end), 2 ) == 0;                             % Pr(all previous infections have been reporterd)
 
    % Particle resampling (only during period for which data is available)
    if iStep <= iLastData
         if par.obsModel == "negbin" & isfinite(par.kObs)   
            weights = nbinpdf(nCasesLoc(iStep), par.kObs, par.kObs./(par.pReport*Zt(:, iStep)+par.kObs));
+           PhiRT(:, iStep) = prod( nbinpdf(0, par.kObs, par.kObs./(par.pReport * Zt(:, iStep:end) + par.kObs )) , 2);                             % Pr(no future reported cases from existing infections)
         elseif par.obsModel == "negbin" & ~isfinite(par.kObs)
            weights = poisspdf(nCasesLoc(iStep), par.pReport*Zt(:, iStep) );
+           PhiRT(:, iStep) = poisspdf(0, par.pReport * sum(Zt(:, iStep:end), 2 ) );                             % Pr(no future reported cases from existing infections)
         elseif par.obsModel =="bin"
            % Zt_int = stochRand(Zt(:, iStep));       % need to do stochastic rounding of Zt to nearest integer for the purpose of calulcating binomial probabilities - this is an approximation as it ignores dependence of Zt between days and may not preserve the correct total number of reported cases 
             weights = binopdf(nCasesLoc(iStep), Zt(:, iStep), par.pReport );
+            PhiRT(:, iStep) = binopdf(0, sum(Zt(:, iStep:end), 2 ), par.pReport );
         else
             error(sprintf('Invalid observation model: %s', par.obsModel));
         end
