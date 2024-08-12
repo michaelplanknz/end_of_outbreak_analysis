@@ -56,32 +56,10 @@ for iOutbreak = 1:nOutbreaks
     % Run particle filter
     [Rt, It, Yt, Zt, Ct, GammaRT, PhiRT, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par);
     
-    % Calculate pre-intervention R for each particle
-    RpreInt = mean( Rt(:, t >= par.tRampStart-par.preIntWindow & t < par.tRampStart), 2);
-    
-    % Calculate gamma function using full data (hindsight)
-    GTDF = [1, 1-cumsum(par.GTD)];      % Pad the survival function with a leading 1 as the first element applies to t  he previous days infections, which have all of their transmission potential remaining the next day
-
-    Gamma = conv2(Yt, GTDF);
-    Gamma = [zeros(par.nParticles, 1), Gamma(:, 1:length(t)-1)];          % offset by one so a case on day t contributes to future infection potential starting on day t+1
-    
-    
-    % Calculate probability of ultimate extinction for an outbreak starting
-    % with a single fully infectious seed case under each particle's
-    % pre-intervention R
-    PUE1 = calcPUE(RpreInt, par.k);
-    
-    
-    % Probability of no futher infections given information up to time t
-    pEnd = exp(-RpreInt.*GammaRT);
-    pEndAvg = mean(pEnd);
-    
-    % Probability of ultimate extinction
-    PUE = exp(-(1-PUE1).*RpreInt.*GammaRT);
-    PUEAvg = mean(PUE);
-
-    pNothing = exp(-RpreInt.*GammaRT) .* PhiRT;
-    pNothingAvg = mean(pNothing);
+    % Do post-processg in particle filter results to calculate
+    % pre-intervention R and different end-of-outbreak probabilities for
+    % each particle
+    [RpreInt, PUE, pNoInf, pNoInfOrCases] = postProcess(t, Rt, GammaRT, PhiRT, par);
 
 
     
@@ -124,6 +102,10 @@ for iOutbreak = 1:nOutbreaks
     xline(par.tRampStart, 'k:');
     xline(par.tRampEnd, 'k:');
     ylabel('simulated daily cases')
+
+    figure;
+    histogram(RpreInt)
+    ylabel('pre-intervention reproduction number')
     
 
     iMinPlot = 15;
@@ -134,9 +116,8 @@ for iOutbreak = 1:nOutbreaks
     bh(2).FaceColor = [0 0 1]; 
     ylabel('reported daily cases')
     yyaxis right
-    plot(t(iMinPlot:end), PUEAvg(iMinPlot:end), 'b-', t(iMinPlot:end), pEndAvg(iMinPlot:end), 'b--', t(iMinPlot:end), pNothingAvg(iMinPlot:end), 'b:' )
+    plot(t(iMinPlot:end), PUE(iMinPlot:end), 'b-', t(iMinPlot:end), pNoInf(iMinPlot:end), 'b--', t(iMinPlot:end), pNoInfOrCases(iMinPlot:end), 'b:' )
     xline(par.tRampStart, 'k:');
-    xline(par.tRampEnd, 'k:');
     ylabel('P(end of outbreak)')
     legend('data - imported cases', 'data - local cases',  'ultimate extinction', 'no future transmission', "no future transmission or reported cases", 'Location', 'northwest')
     xlim( [processed.t(1)-1, t(end)  ] )
