@@ -125,6 +125,8 @@ for iOutbreak = 1:nOutbreaks
     xline(par.tRampEnd, 'k:');
     ylabel('simulated daily cases')
     
+
+    iMinPlot = 15;
     figure;
     yyaxis left
     bh = bar(processed.t, [processed.nCasesImp, processed.nCasesLoc]', 'stacked' );
@@ -132,7 +134,9 @@ for iOutbreak = 1:nOutbreaks
     bh(2).FaceColor = [0 0 1]; 
     ylabel('reported daily cases')
     yyaxis right
-    plot(t, PUEAvg, 'b-', t, pEndAvg, 'b--', t, pNothingAvg, 'b:' )
+    plot(t(iMinPlot:end), PUEAvg(iMinPlot:end), 'b-', t(iMinPlot:end), pEndAvg(iMinPlot:end), 'b--', t(iMinPlot:end), pNothingAvg(iMinPlot:end), 'b:' )
+    xline(par.tRampStart, 'k:');
+    xline(par.tRampEnd, 'k:');
     ylabel('P(end of outbreak)')
     legend('data - imported cases', 'data - local cases',  'ultimate extinction', 'no future transmission', "no future transmission or reported cases", 'Location', 'northwest')
     xlim( [processed.t(1)-1, t(end)  ] )
