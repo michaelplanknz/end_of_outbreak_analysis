@@ -12,9 +12,12 @@ resultsFolder = "../results/";
 % label_processed.csv)
 outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
 
+kValues = [inf, 1, 0.2];
+nk = length(kValues);
 
 % Analyse each outbreak in turn
 nOutbreaks = length(outbreakLbl);
+iRow = 1;
 for iOutbreak = 1:nOutbreaks
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -26,43 +29,55 @@ for iOutbreak = 1:nOutbreaks
 
     processed = readtable(dataFolder+fNameData);
     
-    % Get model parameters and vector of times for which simulations will be
-    % run
-    [t, par] = getPar(outbreakLbl(iOutbreak));
-
-    % Copy imported data onto the time array returned by getPar
-    nCasesLoc = zeros(size(t));
-    nCasesImp = zeros(size(t));
-    nCasesLoc(ismember(t, processed.t)) = processed.nCasesLoc;
-    nCasesImp(ismember(t, processed.t)) = processed.nCasesImp;
 
 
-    % Estimating imported infection dates and accounting for
-    % unreported imported infections
-    nInfImp = [nCasesImp(1+par.tInfImp:end), zeros(1, par.tInfImp)];       % imported infections assumed to occur par.tInfImp days before reported
-    nInfImp(t > par.tMIQ) = 0;                                                  % ignore imported cases with assigned infection date after introduction of MIQ
-    nUndetTot = round((1-par.pReport)/par.pReport*sum(nInfImp));                       % number of undetected imported cases, under assumed rpeorting probability
-    tUndet = randsample(length(nInfImp), nUndetTot, true, nInfImp );            % sample time (index) of undetected cases by reampling with replacement from detected cases
-    nUndet = histcounts(tUndet, 1:length(nInfImp)+1);                             % number of undetected cases on each day
-    nInfImp = nInfImp + nUndet;                                                 % add undeteced cases to data time series
-    
-    
-    
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Model
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    % Run particle filter
-    [Rt, It, Yt, Zt, Ct, GammaRT, PhiRT, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par);
-    
-    % Do post-processg in particle filter results to calculate
-    % pre-intervention R and different end-of-outbreak probabilities for
-    % each particle
-    [RpreInt, PUE, pNoInf, pNoInfOrCases] = postProcess(t, Rt, GammaRT, PhiRT, par);
+    for ik = 1:nk
 
+        % Get model parameters and vector of times for which simulations will be
+        % run
+        [t, par] = getPar(outbreakLbl(iOutbreak));
 
+        par.k = kValues(ik);
+
+        % Copy imported data onto the time array returned by getPar
+        nCasesLoc = zeros(size(t));
+        nCasesImp = zeros(size(t));
+        nCasesLoc(ismember(t, processed.t)) = processed.nCasesLoc;
+        nCasesImp(ismember(t, processed.t)) = processed.nCasesImp;
     
+    
+        % Estimating imported infection dates and accounting for
+        % unreported imported infections
+        nInfImp = [nCasesImp(1+par.tInfImp:end), zeros(1, par.tInfImp)];       % imported infections assumed to occur par.tInfImp days before reported
+        nInfImp(t > par.tMIQ) = 0;                                                  % ignore imported cases with assigned infection date after introduction of MIQ
+        nUndetTot = round((1-par.pReport)/par.pReport*sum(nInfImp));                       % number of undetected imported cases, under assumed rpeorting probability
+        tUndet = randsample(length(nInfImp), nUndetTot, true, nInfImp );            % sample time (index) of undetected cases by reampling with replacement from detected cases
+        nUndet = histcounts(tUndet, 1:length(nInfImp)+1);                             % number of undetected cases on each day
+        nInfImp = nInfImp + nUndet;                                                 % add undeteced cases to data time series
+        
+
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Model
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        % Run particle filter
+        [Rt, It, Yt, Zt, Ct, GammaRT, PhiRT, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par);
+        
+        % Do post-processg in particle filter results to calculate
+        % pre-intervention R and different end-of-outbreak probabilities for
+        % each particle
+        [RpreInt, PUE, pNoInf, pNoInfOrCases] = postProcess(t, Rt, GammaRT, PhiRT, par);
+        
+        results(iRow).outbreak = outbreakLbl;
+        results(iRow).par = par;
+        results(iRow).t = t;
+        results(iRow).RpreInt = RpreInt;
+        results(iRow).PUE = PUE;
+        results(iRow).pNoInf = pNoInf;
+        results(iRow).pNoInfOrCases = pNoInfOrCases;
+        iRow = iRow+1;
+    
+    end    
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Plotting
