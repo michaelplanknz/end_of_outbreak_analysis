@@ -29,7 +29,7 @@ function [Rt, It, Yt, Zt, Ct, GammaRT, PhiRT, ESS, LL] = runPF(t, nCasesLoc, nIn
 %          Zt - matrix of infections by assigned date of report (independent of whether they actually reported as a case or not)  - (i,j) element corresponds to particle i on day j
 %          Ct - matrix of simulated daily cases  - (i,j) element corresponds to particle i on day j
 %          GammaRT - matrix of gamma(t) values calculating in real tme (i.e. only using data availab le up to time t)
-%          PhiRT
+%          PhiRT - matrix of phi(t) values representing the probability that there will be no further cases reported on or after day t arising form infections that occurred prior to day t
 %          ESS - vector of the number of unique particles at each time step
 %          LL - particle marginal log likelihood - can be used in PMMH to fit fixed parameters
 
@@ -74,10 +74,6 @@ for iStep = 2:nSteps
        Yt(:, iStep) = It(:, iStep) + nInfImp(iStep);
    end
    GammaRT(:, iStep) = sum(GTDF(1:length(ind)).*Yt(:, ind), 2 );
-
-   % ind = iStep-1:-1:max(1, iStep-length(RTDC) );
-   % PhiRT(:, iStep) = prod( RTDC(1:length(ind)) .^ It(:, ind), 2   );        % Pr(all previous infections have been reporterd)
-
 
 %   ind = iStep:-1:max(1, iStep+1-length(par.RTD));
 %   Zt(:, iStep) = sum(par.RTD(1:length(ind)) .* (It(:, ind)), 2);             % infections by date of report
