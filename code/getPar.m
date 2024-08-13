@@ -9,8 +9,6 @@ if outbreakLbl == "covid_NZ_2020"
     date0 = datetime(2020, 2, 26);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
     date1 = datetime(2020, 6, 30);           % End date for simulation (anything up to 10 August 2020 which was last day of zero reported cases)
     
-    par.tMIQ = datetime(2020, 4, 10);               % Imported cases after this date will be ignored
-    par.tInfImp = 7;                          % 3 - number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
     
     
     par.resampleLag = 30;       % fixed lag resampling
@@ -26,14 +24,21 @@ if outbreakLbl == "covid_NZ_2020"
      
     % Generation time distribution parameters
     GTmax = 15;                     % maximum time for GT distribution 
-    [GTD_shape, GTD_scale] = gamShapeScale(5.05, 1.94);
+    GTmean = 5.05;
+    GTsd = 1.94;
+    [GTD_shape, GTD_scale] = gamShapeScale(GTmean, GTsd);
     pdfFnGTD = @(x)(gampdf(x, GTD_shape, GTD_scale ));
 
     % Infection to report time distribution parameters
     reportDelayFlag = 1;
     RTmax = 30;
-    [RTD_shape, RTD_scale] = gamShapeScale(11.2, 4.72);                   % mean and variance of incubation plus onset to isolation plus isolation to reporting
+    RTmean = 11.2;                          % mean and s.d. of incubation plus onset to isolation plus isolation to reporting
+    RTsd = 4.72;
+    [RTD_shape, RTD_scale] = gamShapeScale(RTmean, RTsd);       
     pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));
+
+    par.tInfImp = 7;                          % 3 - number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
+    par.tMIQ = datetime(2020, 4, 10);               % Imported cases after this date will be ignored
 
     
     par.preIntWindow = 14;              % days before ramp start to use as a window for estimating per-intervention Rt
@@ -50,9 +55,6 @@ elseif outbreakLbl == "ebola_DRC_2018"
     date0 = datetime(2018, 4, 5);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
     date1 = datetime(2018, 8, 31);           % End date for simulation 
     
-    par.tMIQ = NaT;               % Imported cases after this date will be ignored
-    par.tInfImp = 6;                          % 3 - number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
-    
     par.resampleLag = 30;     % fixed lag resampling
     
     par.sigmaR = 0.02;          % S.D. in random walk step for R
@@ -67,14 +69,22 @@ elseif outbreakLbl == "ebola_DRC_2018"
     
     % Generation time distribution parameters
     GTmax = 70;                     % maximum time for GT distribution 
-    [GTD_shape, GTD_scale] = gamShapeScale(15.3, 9.3);
+    GTmean = 15.3;
+    GTsd = 9.3;
+    [GTD_shape, GTD_scale] = gamShapeScale(GTmean, GTsd);
     pdfFnGTD = @(x)(gampdf(x, GTD_shape, GTD_scale ));
 
     % Infection to report time distribution parameters
     reportDelayFlag = 1;
     RTmax = 30;
-    [RTD_shape, RTD_scale] = gamShapeScale(6.2, 2);                   % mean and variance of incubation plus onset to isolation plus isolation to reporting
-    pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));    
+    RTmean = 6.2;
+    RTsd = 2;
+    [RTD_shape, RTD_scale] = gamShapeScale(RTmean, RTsd);  
+    pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));  
+
+    par.tInfImp = round(RTmean);                          % number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
+    par.tMIQ = NaT;                                      % Imported cases after this date will be ignored
+
     
     par.preIntWindow = 14;              % days before ramp start to use as a window for estimating per-intervention Rt
     
