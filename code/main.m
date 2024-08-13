@@ -12,9 +12,6 @@ resultsFolder = "../results/";
 % label_processed.csv)
 outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
 
-kValues = [inf, 1, 0.2];
-nk = length(kValues);
-
 % Analyse each outbreak in turn
 nOutbreaks = length(outbreakLbl);
 iRow = 1;
@@ -29,15 +26,15 @@ for iOutbreak = 1:nOutbreaks
 
     processed = readtable(dataFolder+fNameData);
     
+    scenarioTab{iOutbreak} = getScenarios(outbreakLbl(iOutbreak));
+    nScenarios = height(scenarioTab{iOutbreak});
 
 
-    for ik = 1:nk
+    for iScenario = 1:nScenarios
 
         % Get model parameters and vector of times for which simulations will be
         % run
-        [t, par] = getPar(outbreakLbl(iOutbreak));
-
-        par.k = kValues(ik);
+        [t, par] = getPar(outbreakLbl(iOutbreak), scenarioTab{iOutbreak}(iScenario, :) );
 
         % Copy imported data onto the time array returned by getPar
         nCasesLoc = zeros(size(t));
@@ -69,7 +66,7 @@ for iOutbreak = 1:nOutbreaks
         [RpreInt, PUE, pNoInf, pNoInfOrCases] = postProcess(t, Rt, GammaRT, PhiRT, par);
         
         results(iRow).outbreak = outbreakLbl;
-        results(iRow).par = par;
+        results(iRow).iScenario = iScenario;
         results(iRow).t = t;
         results(iRow).RpreInt = RpreInt;
         results(iRow).PUE = PUE;
@@ -78,10 +75,20 @@ for iOutbreak = 1:nOutbreaks
         iRow = iRow+1;
     
     end    
-    
+end
+
+results = struct2table(results);
+
+
+
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Plotting
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
     
     nPlot = 25;     % Number of particles to plot
     grey = [0.7 0.7 0.7];
@@ -123,7 +130,7 @@ for iOutbreak = 1:nOutbreaks
     ylabel('pre-intervention reproduction number')
     
 
-    iMinPlot = 15;
+    iMinPlot = 25;          % don't plot the first part of the p(end of out break) curves which are >0 at the start of the outbreak
     figure;
     yyaxis left
     bh = bar(processed.t, [processed.nCasesImp, processed.nCasesLoc]', 'stacked' );
@@ -140,4 +147,3 @@ for iOutbreak = 1:nOutbreaks
     ax.YAxis(1).Color = 'k';
     ax.YAxis(2).Color = 'k';
 
-end

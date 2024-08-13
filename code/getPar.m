@@ -1,4 +1,4 @@
-function [t, par] = getPar(outbreakLbl)
+function [t, par] = getPar(outbreakLbl, scenarioPars)
 
 
 par.nParticles = 1e5;
@@ -9,14 +9,12 @@ if outbreakLbl == "covid_NZ_2020"
     date0 = datetime(2020, 2, 26);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
     date1 = datetime(2020, 6, 30);           % End date for simulation (anything up to 10 August 2020 which was last day of zero reported cases)
     
-    
-    
     par.resampleLag = 30;       % fixed lag resampling
     
     par.sigmaR = 0.05;          % S.D. in random walk step for R
-    par.k = inf;                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
+    par.k = scenarioPars.k;                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
 
-    par.pReport = 0.5;          % Reporting probability
+    par.pReport = scenarioPars.pReport;          % Reporting probability
     par.obsModel = "negbin";    % negative binomial daily observation modle (with dispersion parameter kObs, set kObs = infty for Poisson)
     par.kObs = inf;             % overdispersion parameter for daily observed cases (set to inf for a Poisson distribution)
     
@@ -30,9 +28,9 @@ if outbreakLbl == "covid_NZ_2020"
     pdfFnGTD = @(x)(gampdf(x, GTD_shape, GTD_scale ));
 
     % Infection to report time distribution parameters
-    reportDelayFlag = 1;
+    reportDelayFlag = scenarioPars.RT_mean > 0;
     RTmax = 30;
-    RTmean = 11.2;                          % mean and s.d. of incubation plus onset to isolation plus isolation to reporting
+    RTmean = scenarioPars.RT_mean;                          % mean and s.d. of incubation plus onset to isolation plus isolation to reporting
     RTsd = 4.72;
     [RTD_shape, RTD_scale] = gamShapeScale(RTmean, RTsd);       
     pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));
@@ -58,9 +56,9 @@ elseif outbreakLbl == "ebola_DRC_2018"
     par.resampleLag = 30;     % fixed lag resampling
     
     par.sigmaR = 0.02;          % S.D. in random walk step for R
-    par.k = inf;                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
+    par.k = scenarioPars.k;                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
 
-    par.pReport = 1;          % Reporting probability
+    par.pReport =  scenarioPars.pReport;          % Reporting probability
     par.obsModel = "negbin";     %  binomial daily observation model 
     par.kObs = inf;             % overdispersion parameter for daily observed cases (set to inf for a Poisson distribution, ignored if par.obsModel is "bin")
 
@@ -75,9 +73,9 @@ elseif outbreakLbl == "ebola_DRC_2018"
     pdfFnGTD = @(x)(gampdf(x, GTD_shape, GTD_scale ));
 
     % Infection to report time distribution parameters
-    reportDelayFlag = 1;
+    reportDelayFlag = scenarioPars.RT_mean > 0;
     RTmax = 30;
-    RTmean = 6.2;
+    RTmean = scenarioPars.RT_mean > 0;
     RTsd = 2;
     [RTD_shape, RTD_scale] = gamShapeScale(RTmean, RTsd);  
     pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));  
