@@ -67,24 +67,24 @@ for iOutbreak = 1:nOutbreaks
         % each particle
         [RpreInt, PUE, pNoInf, pNoInfOrCases] = postProcess(t, Rt, GammaRT, PhiRT, par);
         
-        results{iRow}.outbreak = outbreakLbl(iOutbreak);
-        results{iRow}.iScenario = iScenario;
-        results{iRow}.t = t;
-        results{iRow}.par = par;
-        results{iRow}.Rt_mean = mean(Rt);
-        results{iRow}.It_mean = mean(It);
-        results{iRow}.Zt_mean = mean(Zt);
-        results{iRow}.Ct_mean = mean(Ct);
-        results{iRow}.Rt = Rt(1:nToPlot, :);
-        results{iRow}.It = It(1:nToPlot, :);
-        results{iRow}.Zt = Zt(1:nToPlot, :);
-        results{iRow}.Ct = Ct(1:nToPlot, :);
+        results.outbreak(iRow) = outbreakLbl(iOutbreak);
+        results.iScenario(iRow) = iScenario;
+        results.t{iRow} = t;
+        results.par{iRow} = par;
+        results.Rt_mean{iRow} = mean(Rt);
+        results.It_mean{iRow} = mean(It);
+        results.Zt_mean{iRow} = mean(Zt);
+        results.Ct_mean{iRow} = mean(Ct);
+        results.Rt{iRow} = Rt(1:nToPlot, :);
+        results.It{iRow} = It(1:nToPlot, :);
+        results.Zt{iRow} = Zt(1:nToPlot, :);
+        results.Ct{iRow} = Ct(1:nToPlot, :);
         [freq, edges] = histcounts(RpreInt);
-        results{iRow}.RpreInt_edges = edges;
-        results{iRow}.RpreInt_freq = freq;
-        results{iRow}.PUE = PUE;
-        results{iRow}.pNoInf = pNoInf;
-        results{iRow}.pNoInfOrCases = pNoInfOrCases;
+        results.RpreInt_edges{iRow} = edges;
+        results.RpreInt_freq{iRow} = freq;
+        results.PUE{iRow} = PUE;
+        results.pNoInf{iRow} = pNoInf;
+        results.pNoInfOrCases{iRow} = pNoInfOrCases;
         iRow = iRow+1;  
     
     end    

@@ -22,17 +22,17 @@ for iOutbreak = 1:nOutbreaks
 
     iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == baseScenario);
 
-    t = results{iRow}.t;
-    par = results{iRow}.par;
-    Rt = results{iRow}.Rt;
-    It = results{iRow}.It;
-    Zt = results{iRow}.Zt;
-    Ct = results{iRow}.Ct;
-    RpreInt_edges = results{iRow}.RpreInt_edges;
-    RpreInt_freq = results{iRow}.RpreInt_freq;
-    PUE = results{iRow}.PUE;
-    pNoInf = results{iRow}.pNoInf;
-    pNoInfOrCases = results{iRow}.pNoInfOrCases;
+    t = results.t{iRow};
+    par = results.par{iRow};
+    Rt = results.Rt{iRow};
+    It = results.It{iRow};
+    Zt = results.Zt{iRow};
+    Ct = results.Ct{iRow};
+    RpreInt_edges = results.RpreInt_edges{iRow};
+    RpreInt_freq = results.RpreInt_freq{iRow};
+    PUE = results.PUE{iRow};
+    pNoInf = results.pNoInf{iRow};
+    pNoInfOrCases = results.pNoInfOrCases{iRow};
 
 
 
@@ -54,20 +54,23 @@ for iOutbreak = 1:nOutbreaks
     xline(par.tRampStart, 'k:');
     xline(par.tRampEnd, 'k:');
     ylabel('reproduction number')
+    grid on
     
     nexttile;
     plot(t, It, 'Color', grey)
     xline(par.tRampStart, 'k:');
     xline(par.tRampEnd, 'k:');
     ylabel('daily infections')
+    grid on
     
     nexttile;
     plot(t, par.pReport * Zt, 'Color', grey)
     hold on
-    plot(t, results{iRow}.nCasesLoc )
+    plot(processed.t, processed.nCasesLoc )
     xline(par.tRampStart, 'k:');
     xline(par.tRampEnd, 'k:');
     ylabel('expected daily cases')
+    grid on
     
     nexttile;
     plot(t, Ct, 'Color', grey)
@@ -76,7 +79,7 @@ for iOutbreak = 1:nOutbreaks
     xline(par.tRampStart, 'k:');
     xline(par.tRampEnd, 'k:');
     ylabel('simulated daily cases')
-
+    grid on
 
 
     iMinPlot = 25;          % don't plot the first part of the p(end of out break) curves which are >0 at the start of the outbreak
@@ -84,36 +87,39 @@ for iOutbreak = 1:nOutbreaks
 
     figure;
     tiledlayout(3, 1);
-    for iTile = 1:length(scenarioKey)
-            iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == scenarioKey(iTile) );
+    for iPlot = 1:length(scenarioKey)
+        iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == scenarioKey(iPlot) );
 
-            t = results{iRow}.t;
-            par = results{iRow}.par;
-            PUE = results{iRow}.PUE;
-            pNoInf = results{iRow}.pNoInf;
-            pNoInfOrCases = results{iRow}.pNoInfOrCases;
-    
-            nexttile;
-            yyaxis left
-            bh = bar(processed.t, [processed.nCasesImp, processed.nCasesLoc]', 'stacked' );
-            bh(1).FaceColor =  [0.67578 0.84375 0.89844];  
-            bh(2).FaceColor = [0 0 1]; 
-            ylabel('reported daily cases')
-            yyaxis right
-            plot(t(iMinPlot:end), PUE(iMinPlot:end), 'b-', t(iMinPlot:end), pNoInf(iMinPlot:end), 'b--', t(iMinPlot:end), pNoInfOrCases(iMinPlot:end), 'b:' )
-            xline(par.tRampStart, 'k:');
-            ylabel('P(end of outbreak)')
-            legend('data - imported cases', 'data - local cases',  'ultimate extinction', 'no future transmission', "no future transmission or reported cases", 'Location', 'northwest')
-            xlim( [processed.t(1)-1, t(end)  ] )
-            ax = gca;
-            ax.YAxis(1).Color = 'k';
-            ax.YAxis(2).Color = 'k';
+        t = results.t{iRow};
+        par = results.par{iRow};
+        PUE = results.PUE{iRow};
+        pNoInf = results.pNoInf{iRow};
+        pNoInfOrCases = results.pNoInfOrCases{iRow};
+
+        nexttile;
+        yyaxis left
+        bh = bar(processed.t, [processed.nCasesImp, processed.nCasesLoc]', 'stacked' );
+        bh(1).FaceColor =  [0.67578 0.84375 0.89844];  
+        bh(2).FaceColor = [0 0 1]; 
+        ylabel('reported daily cases')
+        yyaxis right
+        plot(t(iMinPlot:end), PUE(iMinPlot:end), 'b-', t(iMinPlot:end), pNoInf(iMinPlot:end), 'b--', t(iMinPlot:end), pNoInfOrCases(iMinPlot:end), 'b:' )
+        xline(par.tRampStart, 'k:');
+        ylabel('P(end of outbreak)')
+        if iPlot == length(scenarioKey)
+            legend('data - imported cases', 'data - local cases',  'ultimate extinction', 'no future transmission', "no future transmission or reported cases", 'Location', 'southeast')
+        end
+        xlim( [processed.t(1)-1, t(end)  ] )
+        ax = gca;
+        ax.YAxis(1).Color = 'k';
+        ax.YAxis(2).Color = 'k';
+        grid on
     end
 
 
     scenarioKey = 1:6;
     colOrd = colororder;
-    col = repelem( colOrd(1:3, :), [2, 1]);
+    col = repelem( colOrd(1:3, :), 2, 1);
     lt = repmat( ["-"; "--"], 3, 1);
 
     figure;
@@ -124,19 +130,27 @@ for iOutbreak = 1:nOutbreaks
     ylabel('reported daily cases')
     yyaxis right
 
-    for iCurve = 1:length(scenarioKey)
-        t = results{iRow}.t;
-        pNoInf = results{iRow}.pNoInf;
-        plot(t(iMinPlot:end), pNoInf(iMinPlot:end), 'LineColor', col(iCurve, :), 'LineType', lt(iCurve) )
+    for iPlot = 1:length(scenarioKey)
+        iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == scenarioKey(iPlot) );
+        t = results.t{iRow};
+        par = results.par{iRow};
+        pNoInf = results.pNoInf{iRow};
+        if isequal(par.RTD, 1)
+            scLabel(iPlot) = string(sprintf('alpha=%.1f, no delay', par.pReport));
+        else
+            scLabel(iPlot) = string(sprintf('alpha=%.1f, delay', par.pReport));
+        end
+        plot(t(iMinPlot:end), pNoInf(iMinPlot:end), 'Color', col(iPlot, :), 'LineStyle', lt(iPlot), 'Marker', 'none' )
         hold on
     end
 
     xline(par.tRampStart, 'k:');
     ylabel('P(end of outbreak)')
-    legend('data - imported cases', 'data - local cases',  'ultimate extinction', 'no future transmission', "no future transmission or reported cases", 'Location', 'northwest')
+    legend(["data - imported cases", "data - local cases", scLabel], 'Location', 'northwest')
     xlim( [processed.t(1)-1, t(end)  ] )
     ax = gca;
     ax.YAxis(1).Color = 'k';
     ax.YAxis(2).Color = 'k';
+    grid on
 
 end
