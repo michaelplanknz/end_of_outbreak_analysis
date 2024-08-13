@@ -4,5 +4,6 @@ papers/
 *.docx
 *.log
 *.aux
+*.mat
 
 

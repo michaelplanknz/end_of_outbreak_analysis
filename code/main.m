@@ -12,6 +12,8 @@ resultsFolder = "../results/";
 % label_processed.csv)
 outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
 
+nToPlot = 25;     % Number of particles to plot
+
 % Analyse each outbreak in turn
 nOutbreaks = length(outbreakLbl);
 iRow = 1;
@@ -65,85 +67,28 @@ for iOutbreak = 1:nOutbreaks
         % each particle
         [RpreInt, PUE, pNoInf, pNoInfOrCases] = postProcess(t, Rt, GammaRT, PhiRT, par);
         
-        results(iRow).outbreak = outbreakLbl;
-        results(iRow).iScenario = iScenario;
-        results(iRow).t = t;
-        results(iRow).RpreInt = RpreInt;
-        results(iRow).PUE = PUE;
-        results(iRow).pNoInf = pNoInf;
-        results(iRow).pNoInfOrCases = pNoInfOrCases;
-        iRow = iRow+1;
+        results{iRow}.outbreak = outbreakLbl(iOutbreak);
+        results{iRow}.iScenario = iScenario;
+        results{iRow}.t = t;
+        results{iRow}.par = par;
+        results{iRow}.Rt_mean = mean(Rt);
+        results{iRow}.It_mean = mean(It);
+        results{iRow}.Zt_mean = mean(Zt);
+        results{iRow}.Ct_mean = mean(Ct);
+        results{iRow}.Rt = Rt(1:nToPlot, :);
+        results{iRow}.It = It(1:nToPlot, :);
+        results{iRow}.Zt = Zt(1:nToPlot, :);
+        results{iRow}.Ct = Ct(1:nToPlot, :);
+        [freq, edges] = histcounts(RpreInt);
+        results{iRow}.RpreInt_edges = edges;
+        results{iRow}.RpreInt_freq = freq;
+        results{iRow}.PUE = PUE;
+        results{iRow}.pNoInf = pNoInf;
+        results{iRow}.pNoInfOrCases = pNoInfOrCases;
+        iRow = iRow+1;  
     
     end    
 end
 
-results = struct2table(results);
-
-
-
-
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Plotting
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-    
-    nPlot = 25;     % Number of particles to plot
-    grey = [0.7 0.7 0.7];
-    
-    
-    figure;
-    tiledlayout(2, 2);
-    
-    nexttile;
-    plot(t, Rt(1:nPlot, :), 'Color', grey)
-    xline(par.tRampStart, 'k:');
-    xline(par.tRampEnd, 'k:');
-    ylabel('reproduction number')
-    
-    nexttile;
-    plot(t, It(1:nPlot, :), 'Color', grey)
-    xline(par.tRampStart, 'k:');
-    xline(par.tRampEnd, 'k:');
-    ylabel('daily infections')
-    
-    nexttile;
-    plot(t, par.pReport*Zt(1:nPlot, :), 'Color', grey)
-    hold on
-    plot(t, nCasesLoc )
-    xline(par.tRampStart, 'k:');
-    xline(par.tRampEnd, 'k:');
-    ylabel('expected daily cases')
-    
-    nexttile;
-    plot(t, Ct(1:nPlot, :), 'Color', grey)
-    hold on
-    plot(t, nCasesLoc )
-    xline(par.tRampStart, 'k:');
-    xline(par.tRampEnd, 'k:');
-    ylabel('simulated daily cases')
-
-    figure;
-    histogram(RpreInt)
-    ylabel('pre-intervention reproduction number')
-    
-
-    iMinPlot = 25;          % don't plot the first part of the p(end of out break) curves which are >0 at the start of the outbreak
-    figure;
-    yyaxis left
-    bh = bar(processed.t, [processed.nCasesImp, processed.nCasesLoc]', 'stacked' );
-    bh(1).FaceColor =  [0.67578 0.84375 0.89844];  
-    bh(2).FaceColor = [0 0 1]; 
-    ylabel('reported daily cases')
-    yyaxis right
-    plot(t(iMinPlot:end), PUE(iMinPlot:end), 'b-', t(iMinPlot:end), pNoInf(iMinPlot:end), 'b--', t(iMinPlot:end), pNoInfOrCases(iMinPlot:end), 'b:' )
-    xline(par.tRampStart, 'k:');
-    ylabel('P(end of outbreak)')
-    legend('data - imported cases', 'data - local cases',  'ultimate extinction', 'no future transmission', "no future transmission or reported cases", 'Location', 'northwest')
-    xlim( [processed.t(1)-1, t(end)  ] )
-    ax = gca;
-    ax.YAxis(1).Color = 'k';
-    ax.YAxis(2).Color = 'k';
+save(resultsFolder+"results.mat");
 
