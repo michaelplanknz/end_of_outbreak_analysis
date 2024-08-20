@@ -1,10 +1,17 @@
-function [t, par] = getPar(outbreakLbl, scenarioPars)
+function [t, par] = getPar(outbreakLbl, iScenario)
 
 
 par.nParticles = 1e5;
 
 
+k_scenarios = [inf; inf; inf; inf; inf; inf; 1; 0.2];
+
 if outbreakLbl == "covid_NZ_2020"
+    % Set arrays of parameters varied from one scenairo to the next
+    pReport_scenarios = [0.4; 0.4; 0.7; 0.7; 1; 1; 0.4; 0.4];
+    RTmean_scenarios = [7.7; 11.2; 7.7; 11.2; 7.7; 11.2; 7.7; 7.7];
+    RTsd_scenarios   = [3.2; 4.7; 3.2; 4.7; 3.2; 4.7; 3.2; 3.2];
+
     
     date0 = datetime(2020, 2, 26);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
     date1 = datetime(2020, 6, 30);           % End date for simulation (anything up to 10 August 2020 which was last day of zero reported cases)
@@ -12,9 +19,9 @@ if outbreakLbl == "covid_NZ_2020"
     par.resampleLag = 30;       % fixed lag resampling
     
     par.sigmaR = 0.05;          % S.D. in random walk step for R
-    par.k = scenarioPars.k;                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
+    par.k = k_scenarios(iScenario);                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
 
-    par.pReport = scenarioPars.pReport;          % Reporting probability
+    par.pReport = pReport_scenarios(iScenario);          % Reporting probability
     par.obsModel = "negbin";    % negative binomial daily observation modle (with dispersion parameter kObs, set kObs = infty for Poisson)
     par.kObs = inf;             % overdispersion parameter for daily observed cases (set to inf for a Poisson distribution)
     
@@ -28,14 +35,11 @@ if outbreakLbl == "covid_NZ_2020"
     pdfFnGTD = @(x)(gampdf(x, GTD_shape, GTD_scale ));
 
     % Infection to report time distribution parameters
-    reportDelayFlag = scenarioPars.RT_mean > 0;
     RTmax = 30;
-    RTmean = scenarioPars.RT_mean;                          % mean and s.d. of incubation plus onset to isolation plus isolation to reporting
-    RTsd = 4.72;
-    [RTD_shape, RTD_scale] = gamShapeScale(RTmean, RTsd);       
+    [RTD_shape, RTD_scale] = gamShapeScale(RTmean_scenarios(iScenario), RTsd_scenarios(iScenario));       
     pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));
 
-    par.tInfImp = 7;                          % 3 - number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
+    par.tInfImp = 5;                          % 3 - number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
     par.tMIQ = datetime(2020, 4, 10);               % Imported cases after this date will be ignored
 
     
@@ -49,6 +53,9 @@ if outbreakLbl == "covid_NZ_2020"
 
 
 elseif outbreakLbl == "ebola_DRC_2018"
+    pReport_scenarios = [0.8; 0.8; 0.9; 0.9; 1; 1; 0.8; 0.8];
+    RTmean_scenarios = [6.2; 11.2; 6.2; 11.2; 6.2; 11.2; 6.2; 6.2 ];
+    RTsd_scenarios =   [1.6; 4.3; 1.6; 4.3; 1.6; 4.3; 1.6; 1.6];
 
     date0 = datetime(2018, 4, 5);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
     date1 = datetime(2018, 8, 31);           % End date for simulation 
@@ -56,9 +63,7 @@ elseif outbreakLbl == "ebola_DRC_2018"
     par.resampleLag = 30;     % fixed lag resampling
     
     par.sigmaR = 0.02;          % S.D. in random walk step for R
-    par.k = scenarioPars.k;                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
 
-    par.pReport =  scenarioPars.pReport;          % Reporting probability
     par.obsModel = "negbin";     %  binomial daily observation model 
     par.kObs = inf;             % overdispersion parameter for daily observed cases (set to inf for a Poisson distribution, ignored if par.obsModel is "bin")
 
@@ -73,16 +78,12 @@ elseif outbreakLbl == "ebola_DRC_2018"
     pdfFnGTD = @(x)(gampdf(x, GTD_shape, GTD_scale ));
 
     % Infection to report time distribution parameters
-    reportDelayFlag = scenarioPars.RT_mean > 0;
     RTmax = 30;
-    RTmean = scenarioPars.RT_mean > 0;
-    RTsd = 2;
-    [RTD_shape, RTD_scale] = gamShapeScale(RTmean, RTsd);  
+    [RTD_shape, RTD_scale] = gamShapeScale(RTmean_scenarios(iScenario), RTsd_scenarios(iScenario));       
     pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));  
 
-    par.tInfImp = round(RTmean);                          % number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
+    par.tInfImp = round(RTmean_scenarios(iScenario));                          % number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
     par.tMIQ = NaT;                                      % Imported cases after this date will be ignored
-
     
     par.preIntWindow = 14;              % days before ramp start to use as a window for estimating per-intervention Rt
     
@@ -94,13 +95,19 @@ else
     error(sprintf('Invalid outbreak label: %s', outbreakLbl));
 end
 
+
+par.k = k_scenarios(iScenario);                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
+par.pReport = pReport_scenarios(iScenario);          % Reporting probability
+
+
 % Time vector
-t = date0-par.tInfImp:date1;
+%t = date0-par.tInfImp:date1;
+t = date0-11:date1;
 
 
 % Consturct GT and reporting time distributions
 par.GTD = discDist( pdfFnGTD, 1, GTmax ); % Probability mass of discretised GT distribution on integers 1, 2, ...
-if reportDelayFlag == 1
+if RTmean_scenarios(iScenario) > 0
     par.RTD = discDist( pdfFnRTD, 0, RTmax);
 else
     par.RTD = 1;
@@ -116,5 +123,6 @@ par.deltat = zeros(size(t));
 par.deltat(t >= par.tRampStart & t < par.tRampEnd) = -dropPerDayMean;
 par.sigmat = par.sigmaR * ones(size(t));
 par.sigmat(t >= par.tRampStart & t < par.tRampEnd) = sqrt(par.sigmaR^2 +  dropPerDaySD^2 );
+
 
 

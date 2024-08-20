@@ -11,6 +11,9 @@ resultsFolder = "../results/";
 % Outbreak labels (processed data files should be in the form
 % label_processed.csv)
 outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
+nScenarios = 8;
+ignoreDays = 30;        % for calculating time at which 95% is reached, ignore this many days at the start of the outbreak
+pThresh = 0.95;
 
 nToPlot = 25;     % Number of particles to plot
 
@@ -27,16 +30,15 @@ for iOutbreak = 1:nOutbreaks
     fNameData = sprintf('%s_processed.csv', outbreakLbl(iOutbreak));
 
     processed = readtable(dataFolder+fNameData);
+    if ~isConsecutive(processed.t) 
+        error('Data file needs to have a field called t consisting of consecutive dates');
+    end
     
-    scenarioTab{iOutbreak} = getScenarios(outbreakLbl(iOutbreak));
-    nScenarios = height(scenarioTab{iOutbreak});
-
-
     for iScenario = 1:nScenarios
 
         % Get model parameters and vector of times for which simulations will be
         % run
-        [t, par] = getPar(outbreakLbl(iOutbreak), scenarioTab{iOutbreak}(iScenario, :) );
+        [t, par] = getPar(outbreakLbl(iOutbreak), iScenario);
 
         % Copy imported data onto the time array returned by getPar
         nCasesLoc = zeros(size(t));
@@ -75,20 +77,26 @@ for iOutbreak = 1:nOutbreaks
         results.It_mean{iRow} = mean(It);
         results.Zt_mean{iRow} = mean(Zt);
         results.Ct_mean{iRow} = mean(Ct);
+        % Just save selection of particles instead of the full set
         results.Rt{iRow} = Rt(1:nToPlot, :);
         results.It{iRow} = It(1:nToPlot, :);
         results.Zt{iRow} = Zt(1:nToPlot, :);
         results.Ct{iRow} = Ct(1:nToPlot, :);
+        % Just save mean, SD, and histogram counts for RpreInt
+        results.RpreInt_mean{iRow} = mean(RpreInt);
+        results.RpreInt_sd{iRow} = std(RpreInt);
         [freq, edges] = histcounts(RpreInt);
         results.RpreInt_edges{iRow} = edges;
         results.RpreInt_freq{iRow} = freq;
         results.PUE{iRow} = PUE;
         results.pNoInf{iRow} = pNoInf;
         results.pNoInfOrCases{iRow} = pNoInfOrCases;
+        % Save time at which elimination probabilities first reach 95%:
+        results.tPUE95{iRow} = t(find(1:length(t) >= ignoreDays & PUE >= pThresh, 1, "first"));  
+        results.tpNoInf95{iRow} = t(find(1:length(t) >= ignoreDays & pNoInf >= pThresh, 1, "first"));
+        results.tpNoInfOrCases95{iRow} = t(find(1:length(t) >= ignoreDays & pNoInfOrCases >= pThresh, 1, "first"));
         iRow = iRow+1;  
-    
     end    
 end
 
 save(resultsFolder+"results.mat");
-

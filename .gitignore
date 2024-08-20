@@ -1,4 +1,5 @@
 papers/
+old/
 *.asv
 *.pdf
 *.docx
@@ -6,5 +7,5 @@ papers/
 *.aux
 *.png
 *.mat
-
-
+linelist_20180620.xlsx
+linelist_20180620.csv

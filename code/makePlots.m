@@ -5,17 +5,21 @@ close all
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plotting
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+saveFlag = false;
 
 dataFolder = "../processed_data/";
 resultsFolder = "../results/";
+figuresFolder = "../figures/";
 
 load(resultsFolder+"results.mat");
-    
 
-baseScenario = 6;
+RtpreInt_mean = cat(1, results.RtpreInt_mean{:});
+RtpreInt_sd = cat(1, results.RtpreInt_sd{:});
+
+baseScenario = 1;
 grey = [0.7 0.7 0.7];
 
-    
+iFig = 1;    
 for iOutbreak = 1:nOutbreaks
     fNameData = sprintf('%s_processed.csv', outbreakLbl(iOutbreak));
     processed = readtable(dataFolder+fNameData);
@@ -36,19 +40,23 @@ for iOutbreak = 1:nOutbreaks
 
 
 
-    figure;
+    h = figure(iFig);
     x = mean([RpreInt_edges(1:end-1); RpreInt_edges(2:end)] );
     dx = x(2)-x(1);
     y = RpreInt_freq/sum(RpreInt_freq)/dx;
     bar(x, y)
     xlabel('pre-intervention reproduction number')
     ylabel('probability density')
-    
+    if saveFlag 
+        saveas(h, figuresFolder+sprintf('fig%i.png', iFig));
+    end
+    iFig = iFig+1;
 
 
-    figure;
+    h = figure(iFig);
+    h.Position = [ 273   236   778   612];
     tiledlayout(2, 2);
-    
+
     nexttile;
     plot(t, Rt, 'Color', grey)
     xline(par.tRampStart, 'k:');
@@ -80,12 +88,18 @@ for iOutbreak = 1:nOutbreaks
     xline(par.tRampEnd, 'k:');
     ylabel('simulated daily cases')
     grid on
+    if saveFlag 
+        saveas(h, figuresFolder+sprintf('fig%i.png', iFig));
+    end
+    iFig = iFig+1;
 
 
-    iMinPlot = 25;          % don't plot the first part of the p(end of out break) curves which are >0 at the start of the outbreak
-    scenarioKey = [6, 7, 8];
 
-    figure;
+    iMinPlot = 30;          % don't plot the first part of the p(end of out break) curves which are >0 at the start of the outbreak
+    scenarioKey = [1, 7, 8];
+
+    h = figure(iFig);
+    h.Position = [   437    67   775   875];
     tiledlayout(3, 1);
     for iPlot = 1:length(scenarioKey)
         iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == scenarioKey(iPlot) );
@@ -115,14 +129,18 @@ for iOutbreak = 1:nOutbreaks
         ax.YAxis(2).Color = 'k';
         grid on
     end
-
+    if saveFlag 
+        saveas(h, figuresFolder+sprintf('fig%i.png', iFig));
+    end
+    iFig = iFig+1;
 
     scenarioKey = 1:6;
     colOrd = colororder;
     col = repelem( colOrd(1:3, :), 2, 1);
     lt = repmat( ["-"; "--"], 3, 1);
 
-    figure;
+    h = figure(iFig);
+    h.Position = [          242         308        1277         587];
     yyaxis left
     bh = bar(processed.t, [processed.nCasesImp, processed.nCasesLoc]', 'stacked' );
     bh(1).FaceColor =  [0.67578 0.84375 0.89844];  
@@ -135,22 +153,22 @@ for iOutbreak = 1:nOutbreaks
         t = results.t{iRow};
         par = results.par{iRow};
         pNoInf = results.pNoInf{iRow};
-        if isequal(par.RTD, 1)
-            scLabel(iPlot) = string(sprintf('alpha=%.1f, no delay', par.pReport));
-        else
-            scLabel(iPlot) = string(sprintf('alpha=%.1f, delay', par.pReport));
-        end
+        RTmean = sum( (0:length(par.RTD)-1).*par.RTD );
+        scLabel(iPlot) = string(sprintf('alpha=%.1f, mean time to notification=%.1f days', par.pReport, RTmean));
         plot(t(iMinPlot:end), pNoInf(iMinPlot:end), 'Color', col(iPlot, :), 'LineStyle', lt(iPlot), 'Marker', 'none' )
         hold on
     end
 
     xline(par.tRampStart, 'k:');
     ylabel('P(end of outbreak)')
-    legend(["data - imported cases", "data - local cases", scLabel], 'Location', 'northwest')
+    legend(["data - imported cases", "data - local cases", scLabel], 'Location', 'southeast')
     xlim( [processed.t(1)-1, t(end)  ] )
     ax = gca;
     ax.YAxis(1).Color = 'k';
     ax.YAxis(2).Color = 'k';
     grid on
-
+    if saveFlag 
+        saveas(h, figuresFolder+sprintf('fig%i.png', iFig));
+    end
+    iFig = iFig+1;
 end
