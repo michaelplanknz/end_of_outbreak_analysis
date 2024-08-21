@@ -20,7 +20,7 @@ end
 nPoints = length(Rarr);
 PUEarr = zeros(1, nPoints);
 
-x0 = 0.5;
+x0 = 0.1;
 opts = optimset('display', 'off');
 if isfinite(k)      % NegBin PUE
     for iPoint = 1:nPoints
@@ -28,13 +28,11 @@ if isfinite(k)      % NegBin PUE
         % myF = @(x)( (pNB/(1-(1-pNB)*x))^k - x );
         myF = @(x)( (k/(k+Rarr(iPoint)*(1-x)))^k - x);
         PUEarr(iPoint) = fsolve(myF, x0, opts);
-        x0 = PUEarr(iPoint);
     end
 else            % Poission PUE
     for iPoint = 1:nPoints
       myF = @(x)(exp(Rarr(iPoint).*(x-1)) - x);
       PUEarr(iPoint) = fsolve(myF, x0, opts);
-      x0 = PUEarr(iPoint);
   end
 end
 

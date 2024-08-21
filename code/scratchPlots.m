@@ -1,9 +1,15 @@
 
 
-    h = figure;
-histogram(RpreInt);
-    xlabel('pre-intervention reproduction number')
-    ylabel('probability density')
+%     h = figure;
+% histogram(RpreInt);
+%     xlabel('pre-intervention reproduction number')
+%     ylabel('probability density')
+
+x = 0:0.01:4;
+y = gampdf(x, RpreInt_sh, RpreInt_sc);
+plot(x, y)
+xlabel('pre-intervention reproduction number')
+ylabel('probability density')
 
 grey = [0.7 0.7 0.7];
       h = figure;
@@ -13,14 +19,14 @@ grey = [0.7 0.7 0.7];
     nexttile;
     plot(t, Rt(1:nToPlot, :), 'Color', grey)
     xline(par.tRampStart, 'k:');
-    xline(par.tRampEnd, 'k:');
+%    xline(par.tRampEnd, 'k:');
     ylabel('reproduction number')
     grid on
     
     nexttile;
     plot(t, It(1:nToPlot, :), 'Color', grey)
     xline(par.tRampStart, 'k:');
-    xline(par.tRampEnd, 'k:');
+%    xline(par.tRampEnd, 'k:');
     ylabel('daily infections')
     grid on
     
@@ -29,7 +35,7 @@ grey = [0.7 0.7 0.7];
     hold on
     plot(processed.t, processed.nCasesLoc )
     xline(par.tRampStart, 'k:');
-    xline(par.tRampEnd, 'k:');
+  %  xline(par.tRampEnd, 'k:');
     ylabel('expected daily cases')
     grid on
     
@@ -38,7 +44,7 @@ grey = [0.7 0.7 0.7];
     hold on
     plot(processed.t, processed.nCasesLoc )
     xline(par.tRampStart, 'k:');
-    xline(par.tRampEnd, 'k:');
+  %  xline(par.tRampEnd, 'k:');
     ylabel('simulated daily cases')
     grid on
 

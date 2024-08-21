@@ -56,9 +56,9 @@ lmw = zeros(1, nSteps);
 Rt(:, 1) = gamrnd(par.R_shape, par.R_scale, par.nParticles, 1);
 
 if isfinite(par.k)    
-   Yt(:, 1) = gamrnd( par.k * nInfImp(1), 1/par.k );
+   Yt(:, 1) = gamrnd( par.k * par.relInfImp * nInfImp(1), 1/par.k );
 else
-   Yt(:, 1) = nInfImp(1);
+   Yt(:, 1) = par.relInfImp * nInfImp(1);
 end
 
 % Loop through time steps
@@ -69,14 +69,12 @@ for iStep = 2:nSteps
    It(:, iStep) = poissrnd(  Rt(:, iStep) .* sum(par.GTD(1:length(ind)).*Yt(:, ind), 2 ) );       % renewal equation
                          
    if isfinite(par.k)    
-       Yt(:, iStep) = gamrnd( par.k * (It(:, iStep) + nInfImp(iStep)), 1/par.k );
+       Yt(:, iStep) = gamrnd( par.k * (It(:, iStep) + par.relInfImp*nInfImp(iStep)), 1/par.k );
    else
-       Yt(:, iStep) = It(:, iStep) + nInfImp(iStep);
+       Yt(:, iStep) = It(:, iStep) + par.relInfImp*nInfImp(iStep);
    end
    GammaRT(:, iStep) = sum(GTDF(1:length(ind)).*Yt(:, ind), 2 );
 
-%   ind = iStep:-1:max(1, iStep+1-length(par.RTD));
-%   Zt(:, iStep) = sum(par.RTD(1:length(ind)) .* (It(:, ind)), 2);             % infections by date of report
    futureCases = mnrnd( It(:, iStep), par.RTD  );
    ind = iStep:min(iStep+length(par.RTD)-1, nSteps);
    Zt(:, ind) = Zt(:, ind) + futureCases(:, 1:length(ind));
@@ -111,7 +109,7 @@ for iStep = 2:nSteps
         % Resample particles according to weights
         % NB GammaRT is not resampled because it represents the future
         % force of infection estimated with information known up to a given
-        % point in time 
+        % point in time. Similarly for PhiRT 
         iResample = max(1, iStep-par.resampleLag);
         Rt(:, iResample:end) = Rt(resampInd, iResample:end);
         It(:, iResample:end) = It(resampInd, iResample:end);

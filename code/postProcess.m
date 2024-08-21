@@ -1,10 +1,10 @@
-function [RpreInt, PUE, pNoInf, pNoInfOrCases] = postProcess(t, Rt, GammaRT, PhiRT, par)
+function [PUE, pNoInf, pNoInfOrCases] = postProcess(t, Rt, GammaRT, PhiRT, RpreInt_sh, RpreInt_sc, par)
 
 
 
 % Calculate pre-intervention R for each particle
-RpreInt = mean( Rt(:, t >= par.tRampStart-par.preIntWindow & t < par.tRampStart), 2);
-    
+%RpreInt = mean( Rt(:, t >= par.tRampStart-par.preIntWindow & t < par.tRampStart), 2);
+RpreInt = gamrnd(RpreInt_sh, RpreInt_sc, par.nParticles, 1);    
 
 % Calculate probability of ultimate extinction for an outbreak starting
 % with a single fully infectious seed case under each particle's

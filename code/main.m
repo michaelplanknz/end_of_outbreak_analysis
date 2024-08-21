@@ -12,10 +12,12 @@ resultsFolder = "../results/";
 % label_processed.csv)
 outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
 nScenarios = 8;
-ignoreDays = 30;        % for calculating time at which 95% is reached, ignore this many days at the start of the outbreak
-pThresh = 0.95;
 
-nToPlot = 25;     % Number of particles to plot
+% Some computational settings:
+ignoreDays = 30;        % for calculating time at which 95% is reached, ignore this many days at the start of the outbreak
+pThresh = 0.95;         % threshold probability
+nToPlot = 25;         % Number of particles to save for plotting
+qt = [0.05 0.5 0.95]; % Quantiles of key outputs to save
 
 % Analyse each outbreak in turn
 nOutbreaks = length(outbreakLbl);
@@ -45,12 +47,16 @@ for iOutbreak = 1:nOutbreaks
         nCasesImp = zeros(size(t));
         nCasesLoc(ismember(t, processed.t)) = processed.nCasesLoc;
         nCasesImp(ismember(t, processed.t)) = processed.nCasesImp;
-    
-    
+        nInfImp(t+par.tInfImp > par.tMIQ) = 0;                                                  % ignore imported cases with assigned infection date after introduction of MIQ
+
+        tInt = find(t == par.tRampStart);
+        [RpreInt_sh, RpreInt_sc] = estimateR(nCasesImp(1:tInt), nCasesLoc(1:tInt), par.GTD, par.relInfImp );
+
+
+
         % Estimating imported infection dates and accounting for
         % unreported imported infections
         nInfImp = [nCasesImp(1+par.tInfImp:end), zeros(1, par.tInfImp)];       % imported infections assumed to occur par.tInfImp days before reported
-        nInfImp(t > par.tMIQ) = 0;                                                  % ignore imported cases with assigned infection date after introduction of MIQ
         nUndetTot = round((1-par.pReport)/par.pReport*sum(nInfImp));                       % number of undetected imported cases, under assumed rpeorting probability
         tUndet = randsample(length(nInfImp), nUndetTot, true, nInfImp );            % sample time (index) of undetected cases by reampling with replacement from detected cases
         nUndet = histcounts(tUndet, 1:length(nInfImp)+1);                             % number of undetected cases on each day
@@ -67,27 +73,24 @@ for iOutbreak = 1:nOutbreaks
         % Do post-processg in particle filter results to calculate
         % pre-intervention R and different end-of-outbreak probabilities for
         % each particle
-        [RpreInt, PUE, pNoInf, pNoInfOrCases] = postProcess(t, Rt, GammaRT, PhiRT, par);
+        [PUE, pNoInf, pNoInfOrCases] = postProcess(t, Rt, GammaRT, PhiRT, RpreInt_sh, RpreInt_sc, par);
         
         results.outbreak(iRow) = outbreakLbl(iOutbreak);
         results.iScenario(iRow) = iScenario;
         results.t{iRow} = t;
         results.par{iRow} = par;
-        results.Rt_mean{iRow} = mean(Rt);
-        results.It_mean{iRow} = mean(It);
-        results.Zt_mean{iRow} = mean(Zt);
-        results.Ct_mean{iRow} = mean(Ct);
+        results.Rt_quantiles{iRow} = quantile(Rt, qt);
+        results.It_quantiles{iRow} = quantile(It, qt);
+        results.Zt_quantiles{iRow} = quantile(Zt, qt);
+        results.Ct_quantiles{iRow} = quantile(Ct, qt);
         % Just save selection of particles instead of the full set
         results.Rt{iRow} = Rt(1:nToPlot, :);
         results.It{iRow} = It(1:nToPlot, :);
         results.Zt{iRow} = Zt(1:nToPlot, :);
         results.Ct{iRow} = Ct(1:nToPlot, :);
         % Just save mean, SD, and histogram counts for RpreInt
-        results.RpreInt_mean{iRow} = mean(RpreInt);
-        results.RpreInt_sd{iRow} = std(RpreInt);
-        [freq, edges] = histcounts(RpreInt);
-        results.RpreInt_edges{iRow} = edges;
-        results.RpreInt_freq{iRow} = freq;
+        results.RpreInt_sh{iRow} = RpreInt_sh;
+        results.RpreInt_sc{iRow} = RpreInt_sc;
         results.PUE{iRow} = PUE;
         results.pNoInf{iRow} = pNoInf;
         results.pNoInfOrCases{iRow} = pNoInfOrCases;
