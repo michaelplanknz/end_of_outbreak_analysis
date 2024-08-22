@@ -1,15 +1,15 @@
 
 
-%     h = figure;
-% histogram(RpreInt);
-%     xlabel('pre-intervention reproduction number')
-%     ylabel('probability density')
+    h = figure;
+histogram(RpreInt);
+    xlabel('pre-intervention reproduction number')
+    ylabel('probability density')
 
-x = 0:0.01:4;
-y = gampdf(x, RpreInt_sh, RpreInt_sc);
-plot(x, y)
-xlabel('pre-intervention reproduction number')
-ylabel('probability density')
+% x = 0:0.01:4;
+% y = gampdf(x, RpreInt_sh, RpreInt_sc);
+% plot(x, y)
+% xlabel('pre-intervention reproduction number')
+% ylabel('probability density')
 
 grey = [0.7 0.7 0.7];
       h = figure;

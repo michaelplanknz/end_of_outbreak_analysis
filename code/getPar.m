@@ -18,7 +18,8 @@ if outbreakLbl == "covid_NZ_2020"
     
     par.resampleLag = 30;       % fixed lag resampling
     
-    par.sigmaR = 0.2;          % 0.05 S.D. in random walk step for R
+    par.sigmaR = 0.05;                % S.D. in random walk step for Rt
+    par.sigmaR_change = 0.2;          % S.D. in random walk step for Rt during rapid intervention-associated change
     par.k = k_scenarios(iScenario);                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
 
     par.pReport = pReport_scenarios(iScenario);          % Reporting probability
@@ -45,11 +46,10 @@ if outbreakLbl == "covid_NZ_2020"
     par.relInfImp = 0.5;
     par.tMIQ = datetime(2020, 4, 10);               % Imported cases after this date will be ignored
 
-    
     par.preIntWindow = 14;              % days before ramp start to use as a window for estimating per-intervention Rt
     
-    par.tRampStart = datetime(2020, 3, 25); % start of intervention-related ramp down
-  %  par.tRampEnd = datetime(2020, 3, 27);   % end of intervention-related ramp down
+    par.tRampStart = datetime(2020, 3, 25); % start of intervention-related change in Rt
+    par.rampDur = 7;                    % duration of intervention-related change in Rt
  %   rampDrop = 1.45;                    % total expected drop in R during ramp down
   %  rampDropSD = 0.2;
 
@@ -65,11 +65,11 @@ elseif outbreakLbl == "ebola_DRC_2018"
     
     par.resampleLag = 30;     % fixed lag resampling
     
-    par.sigmaR = 0.2;          % 0.02 S.D. in random walk step for R
+    par.sigmaR = 0.05;                % S.D. in random walk step for Rt
+    par.sigmaR_change = 0.2;          % S.D. in random walk step for Rt during rapid intervention-associated change
 
     par.obsModel = "negbin";     %  binomial daily observation model 
     par.kObs = inf;             % overdispersion parameter for daily observed cases (set to inf for a Poisson distribution, ignored if par.obsModel is "bin")
-
     
     [par.R_shape, par.R_scale] = gamShapeScale(2.5, 1 );                    % shape-scale parameters for prior for initial R
     
@@ -93,8 +93,8 @@ elseif outbreakLbl == "ebola_DRC_2018"
     
     par.preIntWindow = 14;              % days before ramp start to use as a window for estimating per-intervention Rt
     
-    par.tRampStart = datetime(2018, 5, 8); % start of intervention-related ramp down
-%    par.tRampEnd = datetime(2018, 5, 9);   % end of intervention-related ramp down
+    par.tRampStart = datetime(2018, 5, 8); % start of intervention-related change in Rt
+    par.rampDur = 7;                    % duration of intervention-related change in Rt
 %    rampDrop = 2.0;                    % total expected drop in R during ramp down
 %    rampDropSD = 0.4;
 else
@@ -129,5 +129,7 @@ par.deltat = zeros(size(t));
 par.sigmat = par.sigmaR * ones(size(t));
 %par.sigmat(t >= par.tRampStart & t < par.tRampEnd) = sqrt(par.sigmaR^2 +  dropPerDaySD^2 );
 
+
+par.sigmat(t >= par.tRampStart & t < par.tRampStart + par.rampDur) = par.sigmaR_change;
 
 

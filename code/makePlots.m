@@ -5,7 +5,7 @@ close all
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plotting
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-saveFlag = true;
+saveFlag = false;
 
 dataFolder = "../processed_data/";
 resultsFolder = "../results/";
@@ -18,6 +18,15 @@ baseScenario = 1;
 greyCol = [0.7 0.7 0.7];
 lightGreen = [0.8 1 0.7];
 darkGreen = [0.2 0.6 0.1];
+
+if saveFlag
+    fOut = resultsFolder+"table.tex";
+else
+    fOut = 'temp.tex';
+end
+fid = fopen(fOut, 'w');
+fprintf(fid, '\\begin{tabular}{lll} \n');
+fprintf(fid, '\\hline\n');
 
 iFig = 1;    
 for iOutbreak = 1:nOutbreaks
@@ -36,22 +45,9 @@ for iOutbreak = 1:nOutbreaks
     It_quantiles = results.It_quantiles{iRow};
     Zt_quantiles = results.Zt_quantiles{iRow};
     Ct_quantiles = results.Ct_quantiles{iRow};
-%     RpreInt_sh = results.RpreInt_sh{iRow};
-%     RpreInt_sc = results.RpreInt_sc{iRow};
     PUE = results.PUE{iRow};
     pNoInf = results.pNoInf{iRow};
     pNoInfOrCases = results.pNoInfOrCases{iRow};
-
-%     h = figure(iFig);
-%     x = 0:0.01:4;
-%     y = gamcdf(x, RpreInt_sh, RpreInt_sc);
-%     xlabel('pre-intervention R')
-%     ylabel('probability density')
-%     grid on
-%     if saveFlag 
-%         saveas(h, figuresFolder+sprintf('fig%i.png', iFig));
-%     end
-%     iFig = iFig+1;
 
 
 %     h = figure(iFig);
@@ -62,7 +58,7 @@ for iOutbreak = 1:nOutbreaks
 %     plot(t, Rt, 'Color', greyCol)
 %     xline(par.tRampStart, 'k:');
 %     ylabel('reproduction number')
-%     xlim([t(1), t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
+%     xlim([t(1), processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
 %     grid on
 %     title('(a)')
 %     
@@ -70,7 +66,7 @@ for iOutbreak = 1:nOutbreaks
 %     plot(t, It, 'Color', greyCol)
 %     xline(par.tRampStart, 'k:');
 %     ylabel('daily local infections')
-%     xlim([t(1), t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
+%     xlim([t(1), processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
 %     grid on
 %     title('(b)')
 %     
@@ -80,7 +76,7 @@ for iOutbreak = 1:nOutbreaks
 %     plot(processed.t, processed.nCasesLoc, 'bo' )
 %     xline(par.tRampStart, 'k:');
 %     ylabel('expected daily local cases')
-%     xlim([t(1), t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
+%     xlim([t(1), processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
 %     grid on
 %     title('(c)')
 %     
@@ -90,7 +86,7 @@ for iOutbreak = 1:nOutbreaks
 %     plot(processed.t, processed.nCasesLoc, 'bo' )
 %     xline(par.tRampStart, 'k:');
 %     ylabel('simulated daily local cases')
-%     xlim([t(1), t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
+%     xlim([t(1), processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
 %     grid on
 %     title('(d)')
 %     if saveFlag 
@@ -109,7 +105,7 @@ for iOutbreak = 1:nOutbreaks
     plot(t, Rt_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
     xline(par.tRampStart, 'k:');
     ylabel('reproduction number')
-    xlim([t(1), t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
+    xlim([t(1), processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
     grid on
     title('(a)')
    
@@ -119,7 +115,7 @@ for iOutbreak = 1:nOutbreaks
     plot(t, It_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
     xline(par.tRampStart, 'k:');
     ylabel('daily local infections')
-    xlim([t(1), t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
+    xlim([t(1), processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
     grid on
     title('(b)')
     
@@ -130,7 +126,7 @@ for iOutbreak = 1:nOutbreaks
     plot(processed.t, processed.nCasesLoc, 'bo')
     xline(par.tRampStart, 'k:');
     ylabel('expected daily local cases')
-    xlim([t(1), t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
+    xlim([t(1), processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
     grid on
     title('(c)')
     
@@ -141,7 +137,7 @@ for iOutbreak = 1:nOutbreaks
     plot(processed.t, processed.nCasesLoc, 'bo' )
     xline(par.tRampStart, 'k:');
     ylabel('simulated daily local cases')
-    xlim([t(1), t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
+    xlim([t(1), processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
     grid on
     title('(d)')
     if saveFlag 
@@ -225,6 +221,7 @@ for iOutbreak = 1:nOutbreaks
     end
     yyaxis right
 
+    scLabel = strings(1, length(scenarioKey));
     for iPlot = 1:length(scenarioKey)
         iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == scenarioKey(iPlot) );
         t = results.t{iRow};
@@ -248,4 +245,29 @@ for iOutbreak = 1:nOutbreaks
         saveas(h, figuresFolder+sprintf('fig%i.png', iFig));
     end
     iFig = iFig+1;
+
+
+    scenarioKey = 1:6;
+    rowKey = find(results.outbreak == outbreakLbl(iOutbreak) & ismember(results.iScenario, scenarioKey) );
+    if outbreakLbl(iOutbreak) == "covid_NZ_2020"
+        fprintf(fid, '\\multicolumn{3}{l}{ \\bf Covid-19} \\\\ \n');
+    elseif outbreakLbl(iOutbreak) == "ebola_DRC_2018"
+        fprintf(fid, '\\multicolumn{3}{l}{ \\bf Ebola} \\\\ \n');
+    end
+    fprintf(fid, ' &  $t_n=%.1f$ days & $t_n=%.1f$ days \\\\ \n', results.par{rowKey(1)}.RTmean, results.par{rowKey(2)}.RTmean);
+    fprintf(fid, '$\\alpha=%.1f$ & %s & %s \\\\ \n ', results.par{rowKey(1)}.pReport, string(results.tpNoInf95{rowKey(1)}) , string(results.tpNoInf95{rowKey(2)}) );
+    fprintf(fid, '$\\alpha=%.1f$ & %s & %s \\\\ \n ', results.par{rowKey(3)}.pReport, string(results.tpNoInf95{rowKey(3)}) , string(results.tpNoInf95{rowKey(4)}) );
+    fprintf(fid, '$\\alpha=%.1f$ & %s & %s \\\\ \n ', results.par{rowKey(5)}.pReport, string(results.tpNoInf95{rowKey(5)}) , string(results.tpNoInf95{rowKey(6)}) );
+    fprintf(fid, '\\hline\n');
+
 end
+
+fprintf(fid, '\\end{tabular} \n');
+fclose(fid);
+
+type(fOut);
+
+if ~saveFlag
+    delete(fOut);
+end
+

@@ -1,4 +1,4 @@
-function [Rt, It, Yt, Zt, Ct, GammaRT, PhiRT, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par)
+function [Rt, It, Yt, Zt, Ct, GammaRT, PhiRT, RpreInt, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par)
 
 % Function to run the particle filter on given input data
 %
@@ -63,6 +63,11 @@ end
 
 % Loop through time steps
 for iStep = 2:nSteps
+    if t(iStep) == par.tRampStart
+        RpreInt = mean(Rt(:, iStep-par.preIntWindow:iStep-1), 2);     % save filtering distribution for Rt in the period leading up to intervention start
+    end
+
+
    Rt(:, iStep) = max(0, Rt(:, iStep-1) + par.deltat(iStep) + par.sigmat(iStep)*randn(par.nParticles, 1));        
 
    ind = iStep-1:-1:max(1, iStep-length(par.GTD));
@@ -102,8 +107,11 @@ for iStep = 2:nSteps
         lmw(iStep) = log(mean(weights));
         
 
-       resampInd = randsample(par.nParticles, par.nParticles, true, weights);
+try        resampInd = randsample(par.nParticles, par.nParticles, true, weights);
 
+catch
+0
+end
         ESS(iStep) = length(unique(resampInd));
 
         % Resample particles according to weights
