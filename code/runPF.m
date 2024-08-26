@@ -107,11 +107,11 @@ for iStep = 2:nSteps
         lmw(iStep) = log(mean(weights));
         
 
-try        resampInd = randsample(par.nParticles, par.nParticles, true, weights);
-
-catch
-0
-end
+        try       
+            resampInd = randsample(par.nParticles, par.nParticles, true, weights);
+        catch
+            stop
+        end
         ESS(iStep) = length(unique(resampInd));
 
         % Resample particles according to weights

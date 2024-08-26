@@ -47,11 +47,11 @@ for iOutbreak = 1:nOutbreaks
         nCasesImp = zeros(size(t));
         nCasesLoc(ismember(t, processed.t)) = processed.nCasesLoc;
         nCasesImp(ismember(t, processed.t)) = processed.nCasesImp;
-        nInfImp(t+par.tInfImp > par.tMIQ) = 0;                                                  % ignore imported cases with assigned infection date after introduction of MIQ
-
+ 
         % Estimating imported infection dates and accounting for
         % unreported imported infections
         nInfImp = [nCasesImp(1+par.tInfImp:end), zeros(1, par.tInfImp)];       % imported infections assumed to occur par.tInfImp days before reported
+        nInfImp(t > par.tMIQ) = 0;                                                  % ignore imported cases with assigned infection date after introduction of MIQ
         nUndetTot = round((1-par.pReport)/par.pReport*sum(nInfImp));                       % number of undetected imported cases, under assumed rpeorting probability
         tUndet = randsample(length(nInfImp), nUndetTot, true, nInfImp );            % sample time (index) of undetected cases by reampling with replacement from detected cases
         nUndet = histcounts(tUndet, 1:length(nInfImp)+1);                             % number of undetected cases on each day
