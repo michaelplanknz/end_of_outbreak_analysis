@@ -9,14 +9,14 @@ dataFolder = "../processed_data/";
 resultsFolder = "../results/";
 
 % Outbreak labels (processed data files should be in the form label_processed.csv)
-outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
+%outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
+outbreakLbl = ["covid_NZ_2020"];
 
 nScenarios = 8;
 
 % Some computational settings:
 ignoreDays = 30;        % for calculating time at which 95% is reached, ignore this many days at the start of the outbreak
 pThresh = 0.95;         % threshold probability (for illustrative purposed)
-nToPlot = 25;           % Number of particles to save for plotting
 qt = [0.05 0.5 0.95];   % Quantiles of key outputs to save
 
 % Analyse each outbreak in turn
@@ -54,41 +54,37 @@ for iOutbreak = 1:nOutbreaks
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         % Run particle filter
-        [Rt, It, Yt, Zt, Ct, It_imp, Zt_imp, GammaRT, PhiRT, RpreInt, ESS, LL] = runPF(t, nCasesLoc, nCasesImp, par);
+        particles = runPF(t, nCasesLoc, nCasesImp, par);
         
-        % Do post-processg in particle filter results to calculate
-        % pre-intervention R and different end-of-outbreak probabilities for
-        % each particle
-        [PUE, pNoInf, pNoInfOrCases] = postProcess(t, Rt, GammaRT, PhiRT, RpreInt, par);
-        
+        % Store results for saving in a structrue:
         results.outbreak(iRow) = outbreakLbl(iOutbreak);
         results.iScenario(iRow) = iScenario;
         results.t{iRow} = t;
         results.par{iRow} = par;
-        results.Rt_quantiles{iRow} = quantile(Rt, qt);
-        results.It_quantiles{iRow} = quantile(It, qt);
-        results.Zt_quantiles{iRow} = quantile(Zt, qt);
-        results.It_imp_quantiles{iRow} = quantile(It_imp, qt);
-        results.Zt_imp_quantiles{iRow} = quantile(Zt_imp, qt);
-        results.Ct_quantiles{iRow} = quantile(Ct, qt);
-        % Just save selection of particles instead of the full set
-        results.Rt{iRow} = Rt(1:nToPlot, :);
-        results.It{iRow} = It(1:nToPlot, :);
-        results.Zt{iRow} = Zt(1:nToPlot, :);
-        results.Ct{iRow} = Ct(1:nToPlot, :);
+        results.Rt_quantiles{iRow} = quantile(particles.Rt, qt);
+        results.It_quantiles{iRow} = quantile(particles.It, qt);
+        results.Zt_quantiles{iRow} = quantile(particles.Zt, qt);
+        results.Ct_quantiles{iRow} = quantile(particles.Ct, qt);
+        results.It_imp_quantiles{iRow} = quantile(particles.It_imp, qt);
+        results.Zt_imp_quantiles{iRow} = quantile(particles.Zt_imp, qt);
+        results.Ct_imp_quantiles{iRow} = quantile(particles.Ct_imp, qt);
         % Just save mean, SD, and histogram counts for RpreInt
-        results.RpreInt_mean{iRow} = mean(RpreInt);
-        results.RpreInt_sd{iRow} = std(RpreInt);
-        [edges, freq] = histcounts(RpreInt);
+        results.RpreInt_mean{iRow} = mean(particles.RpreInt);
+        results.RpreInt_sd{iRow} = std(particles.RpreInt);
+        [edges, freq] = histcounts(particles.RpreInt);
         results.RpreInt_edges{iRow} = edges;
         results.RpreInt_freq{iRow} = freq;
-        results.PUE{iRow} = PUE;
-        results.pNoInf{iRow} = pNoInf;
-        results.pNoInfOrCases{iRow} = pNoInfOrCases;
-        % Save time at which elimination probabilities first reach 95%:
-        results.tPUE95{iRow} = t(find(1:length(t) >= ignoreDays & PUE >= pThresh, 1, "first"));  
-        results.tpNoInf95{iRow} = t(find(1:length(t) >= ignoreDays & pNoInf >= pThresh, 1, "first"));
-        results.tpNoInfOrCases95{iRow} = t(find(1:length(t) >= ignoreDays & pNoInfOrCases >= pThresh, 1, "first"));
+        % Save mean and quantiles for end-of-outbreak probabilities
+        results.PUE_mean{iRow} = mean(particles.PUE);
+        results.pNoInf_mean{iRow} = mean(particles.pNoInf);
+        results.pNoInfOrCases_mean{iRow} = mean(particles.pNoInfOrCases);
+        results.PUE_quantiles{iRow} = quantile(particles.PUE, qt);
+        results.pNoInf_quantiles{iRow} = quantile(particles.pNoInf, qt);
+        results.pNoInfOrCases_quantiles{iRow} = quantile(particles.pNoInfOrCases, qt);
+        % Save time at which mean elimination probabilities first reach 95%:
+        results.tPUE95{iRow} = t(find(1:length(t) >= ignoreDays & results.PUE_mean{iRow} >= pThresh, 1, "first"));  
+        results.tpNoInf95{iRow} = t(find(1:length(t) >= ignoreDays & results.pNoInf_mean{iRow} >= pThresh, 1, "first"));
+        results.tpNoInfOrCases95{iRow} = t(find(1:length(t) >= ignoreDays & results.pNoInfOrCases_mean{iRow} >= pThresh, 1, "first"));
         iRow = iRow+1;  
     end    
 end

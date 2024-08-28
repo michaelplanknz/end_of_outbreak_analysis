@@ -23,7 +23,7 @@ if outbreakLbl == "covid_NZ_2020"
     
     par.sigmaR = 0.05;                % S.D. in random walk step for log Rt
     par.sigmaR_control = 0.2;          % S.D. in random walk step for log Rt during rapid intervention-associated change
-    par.deltaR_control = 0.0;         % Mean of random walk step for log Rt during rapid intervention-associated change
+    par.deltaR_control = -0.1;         % Mean of random walk step for log Rt during rapid intervention-associated change
 
     par.k = k_scenarios(iScenario);                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
 
@@ -74,7 +74,7 @@ elseif outbreakLbl == "ebola_DRC_2018"
 
     par.sigmaR = 0.05;                % S.D. in random walk step for log Rt
     par.sigmaR_control = 0.2;          % S.D. in random walk step for log Rt during rapid intervention-associated change
-    par.deltaR_control = 0.0;         % Mean of random walk step for log Rt during rapid intervention-associated change
+    par.deltaR_control = -0.1;         % Mean of random walk step for log Rt during rapid intervention-associated change
 
     par.obsModel = "negbin";     %  binomial daily observation model 
     par.kObs = inf;             % overdispersion parameter for daily observed cases (set to inf for a Poisson distribution, ignored if par.obsModel is "bin")

@@ -1,8 +1,8 @@
-function [Rt, It, Yt, Zt, Ct, It_imp, Zt_imp, GammaRT, PhiRT, RpreInt, ESS, LL] = runPF(t, nCasesLoc, nCasesImp, par)
+function particles = runPF(t, nCasesLoc, nCasesImp, par)
 
 % Function to run the particle filter on given input data
 %
-% USAGE: [Rt, It, Yt, Zt, Ct, GammaRT, LL, ESS] = runPF(t, nCasesLoc, nInfImp, par)
+% USAGE: particles = runPF(t, nCasesLoc, nInfImp, par)
 %
 % INPUTS: t - vector of daily dates defining the model simulation period
 %         nCasesLoc - corresponding vector of daily local cases
@@ -22,14 +22,14 @@ function [Rt, It, Yt, Zt, Ct, It_imp, Zt_imp, GammaRT, PhiRT, RpreInt, ESS, LL] 
 %         - par.pReport - probability of infecitons being reported as cases
 %         - par.resampleLag - fixed lag (number of time steps) for bootstrap particle filter resampling
 %
-% OUTPUTS: Rt - matrix of reproduction numbers - (i,j) element corresponds to particle i on day j
+% OUTPUTS: particles - a structure with the following fields
+%          Rt - matrix of reproduction numbers - (i,j) element corresponds to particle i on day j
 %          It - matrix of daily infections  - (i,j) element corresponds to particle i on day j
 %          Yt - matrix of transmissibility of people infected on a given day - (i,j) element corresponds to particle i on day j
 %          Zt - matrix of infections by assigned date of report (independent of whether they actually reported as a case or not)  - (i,j) element corresponds to particle i on day j
 %          Ct - matrix of simulated daily cases  - (i,j) element corresponds to particle i on day j
 %          GammaRT - matrix of gamma(t) values calculating in real tme (i.e. only using data availab le up to time t)
 %          PhiRT - matrix of phi(t) values representing the probability that there will be no further cases reported on or after day t arising form infections that occurred prior to day t
-%          ESS - vector of the number of unique particles at each time step
 %          LL - particle marginal log likelihood - can be used in PMMH to fit fixed parameters
 
 
@@ -76,7 +76,6 @@ PhiRT = zeros(par.nParticles, nSteps);
 Zt = zeros(par.nParticles, nSteps);
 
 Zt_imp = zeros(par.nParticles, nSteps);
-ESS = par.nParticles*ones(nSteps, 1);
 lmw = zeros(1, nSteps);
 
 
@@ -160,7 +159,7 @@ for iStep = 2:nSteps
         catch
             stop
         end
-        ESS(iStep) = length(unique(resampInd));
+        
 
         % Resample particles according to weights
         % NB GammaRT is not resampled because it represents the future
@@ -177,18 +176,35 @@ for iStep = 2:nSteps
 
 end
 
-LL = sum(lmw);
 
  % Generate samples from the reported case distribution to construct
  % prediction intervals:
 if par.obsModel == "negbin" & isfinite(par.kObs)  
-    Ct = nbinrnd(par.kObs, par.kObs./(par.pReport*Zt+par.kObs));     
+    Ct = nbinrnd(par.kObs, par.kObs./(par.pReport*Zt+par.kObs)); 
+    Ct_imp = nbinrnd(par.kObs, par.kObs./(par.pReport*Zt_imp+par.kObs));  
 elseif par.obsModel == "negbin" & ~isfinite(par.kObs)  
     Ct = poissrnd(par.pReport*Zt);
+    Ct_imp = poissrnd(par.pReport*Zt_imp);
 elseif par.obsModel == "bin"
     Ct = binornd(Zt, par.pReport );
+    Ct_imp = binornd(Zt_imp, par.pReport );
 end
 
 
 
+
+% Store outputs in a structure called particles:
+particles.Rt = Rt;
+particles.It = It;
+particles.Yt = Yt;
+particles.Zt = Zt;
+particles.Ct = Ct;
+particles.It_imp = It_imp;
+particles.Zt_imp = Zt_imp;
+particles.Ct_imp = Ct_imp;
+particles.RpreInt = RpreInt;
+particles.LL = sum(lmw);
+
+% Calculate the different end-of-outbreak probabilities:
+[particles.PUE, particles.pNoInf, particles.pNoInfOrCases] = postProcess(GammaRT, PhiRT, RpreInt, par);
 

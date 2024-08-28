@@ -40,19 +40,15 @@ for iOutbreak = 1:nOutbreaks
 
         t = results.t{iRow};
         par = results.par{iRow};
-        Rt = results.Rt{iRow};
-        It = results.It{iRow};
-        Zt = results.Zt{iRow};
-        Ct = results.Ct{iRow};
         Rt_quantiles = results.Rt_quantiles{iRow};
         It_quantiles = results.It_quantiles{iRow};
         Zt_quantiles = results.Zt_quantiles{iRow};
         It_imp_quantiles = results.It_imp_quantiles{iRow};
         Zt_imp_quantiles = results.Zt_imp_quantiles{iRow};
         Ct_quantiles = results.Ct_quantiles{iRow};
-        PUE = results.PUE{iRow};
-        pNoInf = results.pNoInf{iRow};
-        pNoInfOrCases = results.pNoInfOrCases{iRow};
+        PUE = results.PUE_mean{iRow};
+        pNoInf = results.pNoInf_mean{iRow};
+        pNoInfOrCases = results.pNoInfOrCases_mean{iRow};
 
         h = figure(100+iRow);
         h.Position = [ 273   236   778   612];
@@ -145,17 +141,13 @@ for iOutbreak = 1:nOutbreaks
 
     t = results.t{iRow};
     par = results.par{iRow};
-    Rt = results.Rt{iRow};
-    It = results.It{iRow};
-    Zt = results.Zt{iRow};
-    Ct = results.Ct{iRow};
     Rt_quantiles = results.Rt_quantiles{iRow};
     It_quantiles = results.It_quantiles{iRow};
     Zt_quantiles = results.Zt_quantiles{iRow};
     Ct_quantiles = results.Ct_quantiles{iRow};
-    PUE = results.PUE{iRow};
-    pNoInf = results.pNoInf{iRow};
-    pNoInfOrCases = results.pNoInfOrCases{iRow};
+    PUE = results.PUE_mean{iRow};
+    pNoInf = results.pNoInf_mean{iRow};
+    pNoInfOrCases = results.pNoInfOrCases_mean{iRow};
 
 
     h = figure(iFig);
@@ -228,9 +220,9 @@ for iOutbreak = 1:nOutbreaks
 
         t = results.t{iRow};
         par = results.par{iRow};
-        PUE = results.PUE{iRow};
-        pNoInf = results.pNoInf{iRow};
-        pNoInfOrCases = results.pNoInfOrCases{iRow};
+        PUE = results.PUE_mean{iRow};
+        pNoInf = results.pNoInf_mean{iRow};
+        pNoInfOrCases = results.pNoInfOrCases_mean{iRow};
 
         nexttile;
         yyaxis left
@@ -301,7 +293,7 @@ for iOutbreak = 1:nOutbreaks
         iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == scenarioKey(iPlot) );
         t = results.t{iRow};
         par = results.par{iRow};
-        pNoInf = results.pNoInf{iRow};
+        pNoInf = results.pNoInf_mean{iRow};
         RTmean = sum( (0:length(par.RTD)-1).*par.RTD );
         scLabel(iPlot) = "\alpha="+string(sprintf('%.1f, ', par.pReport))+"t_n="+string(sprintf('%.1f days', RTmean));
         plot(t(iMinPlot:end), pNoInf(iMinPlot:end), 'Color', col(iPlot, :), 'LineStyle', lt(iPlot), 'Marker', 'none' )
