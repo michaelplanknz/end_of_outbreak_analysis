@@ -16,7 +16,7 @@ if outbreakLbl == "covid_NZ_2020"
     date0 = datetime(2020, 2, 26);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
     date1 = datetime(2020, 6, 30);           % End date for simulation (anything up to 10 August 2020 which was last day of zero reported cases)
     
-    par.resampleLag = 20;       % fixed lag resampling
+    par.resampleLag = 30;       % fixed lag resampling
  
     par.tRampStart = datetime(2020, 3, 23);
     par.rampDur = 7;                    % duration of intervention-related change in Rt
@@ -41,7 +41,7 @@ if outbreakLbl == "covid_NZ_2020"
     pdfFnGTD = @(x)(gampdf(x, GTD_shape, GTD_scale ));
 
     % Infection to report time distribution parameters
-    RTmax = 30;
+    RTmax = 25;
     par.RTmean = RTmean_scenarios(iScenario);
     par.RTsd = RTsd_scenarios(iScenario);
     [RTD_shape, RTD_scale] = gamShapeScale(par.RTmean, par.RTsd);       
