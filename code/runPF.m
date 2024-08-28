@@ -1,4 +1,4 @@
-function [Rt, It, Yt, Zt, Ct, GammaRT, PhiRT, RpreInt, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par)
+function [Rt, It, Yt, Zt, Ct, It_imp, Zt_imp, GammaRT, PhiRT, RpreInt, ESS, LL] = runPF(t, nCasesLoc, nCasesImp, par)
 
 % Function to run the particle filter on given input data
 %
@@ -6,8 +6,7 @@ function [Rt, It, Yt, Zt, Ct, GammaRT, PhiRT, RpreInt, ESS, LL] = runPF(t, nCase
 %
 % INPUTS: t - vector of daily dates defining the model simulation period
 %         nCasesLoc - corresponding vector of daily local cases
-%         nInfImp - correspodnig time series of daily imported infecitons
-%         (seed cases)
+%         nCasesImp - correspodnig time series of daily imported cases
 %         par - structure of model parameters with fields
 %         - par.nParticles - number of particles to use
 %         - par.GTD - vector of probability masses for generation time t = 1, 2, .. days
@@ -41,6 +40,33 @@ RTDC = cumsum(par.RTD);
 nSteps = length(t);
 iLastData = length(nCasesLoc);
 
+
+
+% Estimating imported infection dates and accounting for
+% unreported imported infections
+if par.filterImportsFlag
+    c = conv(nCasesImp, fliplr(par.RTD));
+    if c(1:length(par.RTD)-1) > 0
+        fprintf('Warning: %.3f imported cases have been lost by the backward convolution process')
+    end
+    nImpPrior = c(length(par.RTD):end)/par.pReport;
+    It_imp = zeros(par.nParticles, nSteps);
+    It_imp(:, 1) = poissrnd(nImpPrior(1), par.nParticles, 1);
+    figure(200);
+    plot(t, nCasesImp, t, par.pReport*nImpPrior)
+    drawnow
+else
+    if sum(nCasesImp(1:par.tInfImp)) > 0
+        fprintf('Warning: %i imported cases are being ignored because they occured during the first %i days of the time vector passed to runPF()\n', sum(nCasesImp(1:par.tInfImp)), par.tInfImp)
+    end
+    nImpDet = [nCasesImp(1+par.tInfImp:end), zeros(1, par.tInfImp)];       % imported infections assumed to occur par.tInfImp days before reported
+    nUndetTot = round((1-par.pReport)/par.pReport*sum(nImpDet));                       % number of undetected imported cases, under assumed rpeorting probability
+    tUndet = randsample(length(nImpDet), nUndetTot, true, nImpDet );            % sample time (index) of undetected cases by reampling with replacement from detected cases
+    nImpUndet = histcounts(tUndet, 1:length(nImpDet)+1);                             % number of undetected cases on each day
+    It_imp = repmat(nImpDet + nImpUndet, par.nParticles, 1);                                                 % add undeteced cases to data time series
+end
+                                             
+
 % Initialise variables for renewal equation particle filter
 Rt = zeros(par.nParticles, nSteps);
 It = zeros(par.nParticles, nSteps);
@@ -48,6 +74,8 @@ Yt = zeros(par.nParticles, nSteps);
 GammaRT = zeros(par.nParticles, nSteps);
 PhiRT = zeros(par.nParticles, nSteps);
 Zt = zeros(par.nParticles, nSteps);
+
+Zt_imp = zeros(par.nParticles, nSteps);
 ESS = par.nParticles*ones(nSteps, 1);
 lmw = zeros(1, nSteps);
 
@@ -55,52 +83,72 @@ lmw = zeros(1, nSteps);
 % For the inital value of Rt (needed for first time step), draw from priors 
 Rt(:, 1) = gamrnd(par.R_shape, par.R_scale, par.nParticles, 1);
 
-if isfinite(par.k)    
-   Yt(:, 1) = gamrnd( par.k * par.relInfImp * nInfImp(1), 1/par.k );
-else
-   Yt(:, 1) = par.relInfImp * nInfImp(1);
-end
-
 % Loop through time steps
 for iStep = 2:nSteps
     if t(iStep) == par.tRampStart
         RpreInt = mean(Rt(:, iStep-par.preIntWindow:iStep-1), 2);     % save filtering distribution for Rt in the period leading up to intervention start
     end
 
+  % Rt(:, iStep) = max(0, Rt(:, iStep-1) + par.deltat(iStep) + par.sigmat(iStep)*randn(par.nParticles, 1));        
+   Rt(:, iStep) = Rt(:, iStep-1) .* lognrnd(par.deltat(iStep), par.sigmat(iStep), par.nParticles, 1);
 
-   Rt(:, iStep) = max(0, Rt(:, iStep-1) + par.deltat(iStep) + par.sigmat(iStep)*randn(par.nParticles, 1));        
+   if par.filterImportsFlag
+       It_imp(:, iStep) = poissrnd(nImpPrior(iStep), par.nParticles, 1);        % sample imported infections from the prior
+   end
+   if isfinite(par.k)    
+       Yt(:, iStep-1) = gamrnd( par.k * (It(:, iStep-1) + par.relInfImp * ~(t(iStep-1) > par.tMIQ ) *It_imp(:, iStep-1)), 1/par.k );
+   else
+       Yt(:, iStep-1) = It(:, iStep-1) + par.relInfImp * ~(t(iStep-1) > par.tMIQ ) * It_imp(:, iStep-1);
+   end
 
    ind = iStep-1:-1:max(1, iStep-length(par.GTD));
    It(:, iStep) = poissrnd(  Rt(:, iStep) .* sum(par.GTD(1:length(ind)).*Yt(:, ind), 2 ) );       % renewal equation
-                         
-   if isfinite(par.k)    
-       Yt(:, iStep) = gamrnd( par.k * (It(:, iStep) + par.relInfImp*nInfImp(iStep)), 1/par.k );
-   else
-       Yt(:, iStep) = It(:, iStep) + par.relInfImp*nInfImp(iStep);
-   end
    GammaRT(:, iStep) = sum(GTDF(1:length(ind)).*Yt(:, ind), 2 );
 
-   futureCases = mnrnd( It(:, iStep), par.RTD  );
    ind = iStep:min(iStep+length(par.RTD)-1, nSteps);
+   futureCases = mnrnd( It(:, iStep), par.RTD  );
    Zt(:, ind) = Zt(:, ind) + futureCases(:, 1:length(ind));
    
+   futureCasesImp = mnrnd( It_imp(:, iStep), par.RTD  );
+   Zt_imp(:, ind) = Zt_imp(:, ind) + futureCasesImp(:, 1:length(ind));
 
    % Particle resampling (only during period for which data is available)
    if iStep <= iLastData
         if par.obsModel == "negbin" & isfinite(par.kObs)   
-           weights = nbinpdf(nCasesLoc(iStep), par.kObs, par.kObs./(par.pReport*Zt(:, iStep)+par.kObs));
-           PhiRT(:, iStep) = prod( nbinpdf(0, par.kObs, par.kObs./(par.pReport * Zt(:, iStep:end) + par.kObs )) , 2);                             % Pr(no future reported cases from existing infections)
+           if par.filterImportsFlag
+                weightsImp = nbinpdf(nCasesImp(iStep), par.kObs, par.kObs./(par.pReport*Zt_imp(:, iStep)+par.kObs));
+           else
+               weightsImp = 1;
+           end
+            weights = weightsImp .* nbinpdf(nCasesLoc(iStep), par.kObs, par.kObs./(par.pReport*Zt(:, iStep)+par.kObs));
+           PhiRT(:, iStep) = prod( nbinpdf(0, par.kObs, par.kObs./(par.pReport * Zt(:, iStep:end) + par.kObs )) , 2);                             % Pr(no future reported cases from existing local infections)
         elseif par.obsModel == "negbin" & ~isfinite(par.kObs)
-           weights = poisspdf(nCasesLoc(iStep), par.pReport*Zt(:, iStep) );
-           PhiRT(:, iStep) = poisspdf(0, par.pReport * sum(Zt(:, iStep:end), 2 ) );                             % Pr(no future reported cases from existing infections)
+           if par.filterImportsFlag
+                weightsImp = poisspdf(nCasesImp(iStep), par.pReport*Zt_imp(:, iStep));
+           else
+               weightsImp = 1;
+           end
+           weights = weightsImp .* poisspdf(nCasesLoc(iStep), par.pReport*Zt(:, iStep) );
+           PhiRT(:, iStep) = poisspdf(0, par.pReport * sum(Zt(:, iStep:end), 2 ) );                             % Pr(no future reported cases from existing local infections)
         elseif par.obsModel =="bin"
-            if max( Zt(:, iStep)) < nCasesLoc(iStep)
-                weights = Zt(:, iStep) == max(Zt(:, iStep));
-                fprintf('Warning: at time step %i/%i, max Zt = %i and reported cases = %i, using particles with maximal Zt\n', iStep, nSteps, max(Zt(:, iStep), nCasesLoc(iStep)))
-            else
-                weights = binopdf(nCasesLoc(iStep), Zt(:, iStep), par.pReport );
-            end
-            PhiRT(:, iStep) = binopdf(0, sum(Zt(:, iStep:end), 2 ), par.pReport );
+           if par.filterImportsFlag
+                weightsImp = binopdf(nCasesImp(iStep), Zt_imp(:, iStep), par.pReport);
+           else
+               weightsImp = 1;
+           end            
+           weights = weightsImp .* binopdf(nCasesLoc(iStep), Zt(:, iStep), par.pReport );
+           if max(weights) == 0
+                fprintf('Warning: at time step %i/%i, max Zt = %i and local cases = %i, max Zt_imp = %i and imported cases = %i, using particles with minimal SSE\n', iStep, nSteps, max(Zt(:, iStep)), nCasesLoc(iStep), max(Zt_imp(:, iStep)), nCasesImp(iStep) )
+                if par.filterImportsFlag                    
+                    distImp = nCasesImp(iStep) - Zt_imp(:, iStep).^2;
+                else
+                    distImp = 0;
+                end
+                dist = distImp + nCasesLoc(iStep) - Zt(:, iStep).^2;
+                weights = (dist == min(dist));
+
+           end
+           PhiRT(:, iStep) = binopdf(0, sum(Zt(:, iStep:end), 2 ), par.pReport );
         else
             error(sprintf('Invalid observation model: %s', par.obsModel));
         end
@@ -123,6 +171,8 @@ for iStep = 2:nSteps
         It(:, iResample:end) = It(resampInd, iResample:end);
         Yt(:, iResample:end) = Yt(resampInd, iResample:end);
         Zt(:, iResample:end) = Zt(resampInd, iResample:end);
+        It_imp(:, iResample:end) = It_imp(resampInd, iResample:end);
+        Zt_imp(:, iResample:end) = Zt_imp(resampInd, iResample:end);
    end
 
 end

@@ -48,22 +48,13 @@ for iOutbreak = 1:nOutbreaks
         nCasesLoc(ismember(t, processed.t)) = processed.nCasesLoc;
         nCasesImp(ismember(t, processed.t)) = processed.nCasesImp;
  
-        % Estimating imported infection dates and accounting for
-        % unreported imported infections
-        nInfImp = [nCasesImp(1+par.tInfImp:end), zeros(1, par.tInfImp)];       % imported infections assumed to occur par.tInfImp days before reported
-        nInfImp(t > par.tMIQ) = 0;                                                  % ignore imported cases with assigned infection date after introduction of MIQ
-        nUndetTot = round((1-par.pReport)/par.pReport*sum(nInfImp));                       % number of undetected imported cases, under assumed rpeorting probability
-        tUndet = randsample(length(nInfImp), nUndetTot, true, nInfImp );            % sample time (index) of undetected cases by reampling with replacement from detected cases
-        nUndet = histcounts(tUndet, 1:length(nInfImp)+1);                             % number of undetected cases on each day
-        nInfImp = nInfImp + nUndet;                                                 % add undeteced cases to data time series
-        
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Model
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         % Run particle filter
-        [Rt, It, Yt, Zt, Ct, GammaRT, PhiRT, RpreInt, ESS, LL] = runPF(t, nCasesLoc, nInfImp, par);
+        [Rt, It, Yt, Zt, Ct, It_imp, Zt_imp, GammaRT, PhiRT, RpreInt, ESS, LL] = runPF(t, nCasesLoc, nCasesImp, par);
         
         % Do post-processg in particle filter results to calculate
         % pre-intervention R and different end-of-outbreak probabilities for
@@ -77,6 +68,8 @@ for iOutbreak = 1:nOutbreaks
         results.Rt_quantiles{iRow} = quantile(Rt, qt);
         results.It_quantiles{iRow} = quantile(It, qt);
         results.Zt_quantiles{iRow} = quantile(Zt, qt);
+        results.It_imp_quantiles{iRow} = quantile(It_imp, qt);
+        results.Zt_imp_quantiles{iRow} = quantile(Zt_imp, qt);
         results.Ct_quantiles{iRow} = quantile(Ct, qt);
         % Just save selection of particles instead of the full set
         results.Rt{iRow} = Rt(1:nToPlot, :);

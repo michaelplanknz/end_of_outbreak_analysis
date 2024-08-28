@@ -16,10 +16,15 @@ if outbreakLbl == "covid_NZ_2020"
     date0 = datetime(2020, 2, 26);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
     date1 = datetime(2020, 6, 30);           % End date for simulation (anything up to 10 August 2020 which was last day of zero reported cases)
     
-    par.resampleLag = 30;       % fixed lag resampling
+    par.resampleLag = 20;       % fixed lag resampling
+ 
+    par.tRampStart = datetime(2020, 3, 23);
+    par.rampDur = 7;                    % duration of intervention-related change in Rt
     
-    par.sigmaR = 0.05;                % S.D. in random walk step for Rt
-    par.sigmaR_change = 0.2;          % S.D. in random walk step for Rt during rapid intervention-associated change
+    par.sigmaR = 0.05;                % S.D. in random walk step for log Rt
+    par.sigmaR_control = 0.2;          % S.D. in random walk step for log Rt during rapid intervention-associated change
+    par.deltaR_control = 0.0;         % Mean of random walk step for log Rt during rapid intervention-associated change
+
     par.k = k_scenarios(iScenario);                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
 
     par.pReport = pReport_scenarios(iScenario);          % Reporting probability
@@ -42,16 +47,15 @@ if outbreakLbl == "covid_NZ_2020"
     [RTD_shape, RTD_scale] = gamShapeScale(par.RTmean, par.RTsd);       
     pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));
 
-    par.tInfImp = 5;                          % 3 - number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
+    par.filterImportsFlag = false;
+    par.tInfImp = 5;                          % number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
+
     par.relInfImp = 0.5;
     par.tMIQ = datetime(2020, 4, 10);               % Imported cases after this date will be ignored
 
     par.preIntWindow = 14;              % days before ramp start to use as a window for estimating per-intervention Rt
     
-    par.tRampStart = datetime(2020, 3, 25); % start of intervention-related change in Rt
-    par.rampDur = 7;                    % duration of intervention-related change in Rt
- %   rampDrop = 1.45;                    % total expected drop in R during ramp down
-  %  rampDropSD = 0.2;
+
 
 
 
@@ -63,10 +67,14 @@ elseif outbreakLbl == "ebola_DRC_2018"
     date0 = datetime(2018, 4, 5);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
     date1 = datetime(2018, 8, 31);           % End date for simulation 
     
-    par.resampleLag = 30;     % fixed lag resampling
-    
-    par.sigmaR = 0.05;                % S.D. in random walk step for Rt
-    par.sigmaR_change = 0.2;          % S.D. in random walk step for Rt during rapid intervention-associated change
+    par.resampleLag = 50;     % fixed lag resampling
+
+    par.tRampStart = datetime(2018, 5, 8); % start of intervention-related change in Rt
+    par.rampDur = 7;                    % duration of intervention-related change in Rt
+
+    par.sigmaR = 0.05;                % S.D. in random walk step for log Rt
+    par.sigmaR_control = 0.2;          % S.D. in random walk step for log Rt during rapid intervention-associated change
+    par.deltaR_control = 0.0;         % Mean of random walk step for log Rt during rapid intervention-associated change
 
     par.obsModel = "negbin";     %  binomial daily observation model 
     par.kObs = inf;             % overdispersion parameter for daily observed cases (set to inf for a Poisson distribution, ignored if par.obsModel is "bin")
@@ -74,7 +82,7 @@ elseif outbreakLbl == "ebola_DRC_2018"
     [par.R_shape, par.R_scale] = gamShapeScale(2.5, 1 );                    % shape-scale parameters for prior for initial R
     
     % Generation time distribution parameters
-    GTmax = 70;                     % maximum time for GT distribution 
+    GTmax = 50;                     % maximum time for GT distribution 
     par.GTmean = 15.3;
     par.GTsd = 9.3;
     [GTD_shape, GTD_scale] = gamShapeScale(par.GTmean, par.GTsd);
@@ -87,16 +95,12 @@ elseif outbreakLbl == "ebola_DRC_2018"
     [RTD_shape, RTD_scale] = gamShapeScale(par.RTmean, par.RTsd);  
     pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));  
 
+    par.filterImportsFlag = false;
     par.tInfImp = round(RTmean_scenarios(iScenario));                          % number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
     par.relInfImp = 1;
     par.tMIQ = NaT;                                      % Imported cases after this date will be ignored
     
     par.preIntWindow = 14;              % days before ramp start to use as a window for estimating per-intervention Rt
-    
-    par.tRampStart = datetime(2018, 5, 8); % start of intervention-related change in Rt
-    par.rampDur = 7;                    % duration of intervention-related change in Rt
-%    rampDrop = 2.0;                    % total expected drop in R during ramp down
-%    rampDropSD = 0.4;
 else
     error(sprintf('Invalid outbreak label: %s', outbreakLbl));
 end
@@ -120,16 +124,10 @@ end
 
 
 % Construct vector of prior daily mean and s.d. change in Rt
-% nDays = days(par.tRampEnd-par.tRampStart);
-% dropPerDayMean = rampDrop / nDays;
-% dropPerDaySD = rampDropSD / sqrt(nDays);
-% rampCV = 0.2;
 par.deltat = zeros(size(t));
-%par.deltat(t >= par.tRampStart & t < par.tRampEnd) = -dropPerDayMean;
+par.deltat(t >= par.tRampStart & t < par.tRampStart+par.rampDur) = par.deltaR_control;
+
 par.sigmat = par.sigmaR * ones(size(t));
-%par.sigmat(t >= par.tRampStart & t < par.tRampEnd) = sqrt(par.sigmaR^2 +  dropPerDaySD^2 );
-
-
-par.sigmat(t >= par.tRampStart & t < par.tRampStart + par.rampDur) = par.sigmaR_change;
+par.sigmat(t >= par.tRampStart & t < par.tRampStart + par.rampDur) = par.sigmaR_control;
 
 

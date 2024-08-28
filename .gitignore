@@ -6,5 +6,6 @@ old/
 *.log
 *.aux
 *.mat
+temp.*
 linelist_20180620.xlsx
 linelist_20180620.csv
