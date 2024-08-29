@@ -14,7 +14,7 @@ if outbreakLbl == "covid_NZ_2020"
 
     
     date0 = datetime(2020, 2, 26);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
-    date1 = datetime(2020, 6, 30);           % End date for simulation (anything up to 10 August 2020 which was last day of zero reported cases)
+    date1 = datetime(2020, 6, 15);           % End date for simulation (anything up to 10 August 2020 which was last day of zero reported cases)
     
     par.resampleLag = 30;       % fixed lag resampling
  
@@ -65,7 +65,7 @@ elseif outbreakLbl == "ebola_DRC_2018"
     RTsd_scenarios =   [1.6; 4.3; 1.6; 4.3; 1.6; 4.3; 1.6; 1.6];
 
     date0 = datetime(2018, 4, 5);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
-    date1 = datetime(2018, 8, 31);           % End date for simulation 
+    date1 = datetime(2018, 8, 20);           % End date for simulation 
     
     par.resampleLag = 50;     % fixed lag resampling
 

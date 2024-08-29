@@ -9,8 +9,7 @@ dataFolder = "../processed_data/";
 resultsFolder = "../results/";
 
 % Outbreak labels (processed data files should be in the form label_processed.csv)
-%outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
-outbreakLbl = ["covid_NZ_2020"];
+outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
 
 nScenarios = 8;
 

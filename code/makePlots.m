@@ -18,6 +18,9 @@ baseScenario = 1;
 greyCol = [0.7 0.7 0.7];
 lightGreen = [0.8 1 0.7];
 darkGreen = [0.2 0.6 0.1];
+lightRed = [1 0.8 0.7];
+darkRed = [0.6 0.2 0.1];
+
 
 if saveFlag
     fOut = resultsFolder+"table.tex";
@@ -131,7 +134,7 @@ end
 
 
 
-
+iMinPlot = 30;          % don't plot the first part of the p(end of out break) curves which are >0 at the start of the outbreak
 iFig = 1;    
 for iOutbreak = 1:nOutbreaks
     fNameData = sprintf('%s_processed.csv', outbreakLbl(iOutbreak));
@@ -148,11 +151,14 @@ for iOutbreak = 1:nOutbreaks
     PUE = results.PUE_mean{iRow};
     pNoInf = results.pNoInf_mean{iRow};
     pNoInfOrCases = results.pNoInfOrCases_mean{iRow};
+    PUE_quantiles = results.PUE_quantiles{iRow};
+    pNoInf_quantiles = results.pNoInf_quantiles{iRow};
+    pNoInfOrCases_quantiles = results.pNoInfOrCases_quantiles{iRow};
 
 
     h = figure(iFig);
-    h.Position = [ 273   236   778   612];
-    tiledlayout(2, 2);
+    h.Position = [ 273   443   953   405];
+    tiledlayout(1, 2);
 
     nexttile;
     [x, y] = getFillArgs(t, Rt_quantiles(1, :), Rt_quantiles(3, :) );
@@ -166,39 +172,16 @@ for iOutbreak = 1:nOutbreaks
     title('(a)')
    
     nexttile;
-    [x, y] = getFillArgs(t, It_quantiles(1, :), It_quantiles(3, :) );
-    fill( x, y, lightGreen, 'LineStyle', 'none'  )
-    hold on
-    plot(t, It_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
-    xline(par.tRampStart, 'k:');
-    ylabel('daily local infections')
-    xlim([processed.t(1)-1, processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
-    grid on
-    title('(b)')
-    
-    nexttile;
-    [x, y] = getFillArgs(t, par.pReport*Zt_quantiles(1, :), par.pReport*Zt_quantiles(3, :) );
-    fill( x, y, lightGreen, 'LineStyle', 'none'  )
-    hold on
-    plot(t, par.pReport * Zt_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
-    plot(processed.t, processed.nCasesLoc, 'bo')
-    xline(par.tRampStart, 'k:');
-    ylabel('expected daily local cases')
-    xlim([processed.t(1)-1, processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
-    grid on
-    title('(c)')
-    
-    nexttile;
     [x, y] = getFillArgs(t, Ct_quantiles(1, :), Ct_quantiles(3, :) );
     fill( x, y, lightGreen, 'LineStyle', 'none'  )
     hold on
     plot(t, Ct_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
     plot(processed.t, processed.nCasesLoc, 'bo' )
     xline(par.tRampStart, 'k:');
-    ylabel('simulated daily local cases')
+    ylabel('daily local case notifications')
     xlim([processed.t(1)-1, processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
     grid on
-    title('(d)')
+    title('(b)')
     if saveFlag 
         saveas(h, figuresFolder+sprintf('fig%i.png', iFig));
     end
@@ -209,7 +192,6 @@ for iOutbreak = 1:nOutbreaks
 
 
 
-    iMinPlot = 30;          % don't plot the first part of the p(end of out break) curves which are >0 at the start of the outbreak
     scenarioKey = [1, 7, 8];
 
     h = figure(iFig);
