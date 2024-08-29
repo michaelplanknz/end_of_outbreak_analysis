@@ -44,8 +44,8 @@ for iOutbreak = 1:nOutbreaks
         % Copy imported data onto the time array returned by getPar
         nCasesLoc = zeros(size(t));
         nCasesImp = zeros(size(t));
-        nCasesLoc(ismember(t, processed.t)) = processed.nCasesLoc;
-        nCasesImp(ismember(t, processed.t)) = processed.nCasesImp;
+        nCasesLoc(ismember(t, processed.t)) = processed.nCasesLoc(ismember(processed.t, t));
+        nCasesImp(ismember(t, processed.t)) = processed.nCasesImp(ismember(processed.t, t));
  
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
