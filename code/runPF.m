@@ -14,7 +14,7 @@ function particles = runPF(t, nCasesLoc, nCasesImp, par)
 %         - par.R_shape, par.R_scale - shape and scale parameters for the
 %         prior distribution for initial Rt
 %         - par.k - dispersion parameter for individual transmissibility (inf for Poisson offspring)
-%         - par.deltat, par.sigmat - vector (of same length as t) of means and s.d. for the daily change in Rt 
+%         - par.deltat, par.sigmat - vectors (of same length as t) of means and s.d. for the daily change in Rt 
 %         - par.obsModel - noise model for observed daily cases data, either
 %         "bin" or "negbin" 
 %         - par.kObs (if obsModel is "negbin") - dispersion parameter for
@@ -84,43 +84,54 @@ Rt(:, 1) = gamrnd(par.R_shape, par.R_scale, par.nParticles, 1);
 
 % Loop through time steps
 for iStep = 2:nSteps
+    % When you get to intevention start time, save the filtering distribution for Rt in the period leading up to intervention 
     if t(iStep) == par.tRampStart
-        RpreInt = mean(Rt(:, iStep-par.preIntWindow:iStep-1), 2);     % save filtering distribution for Rt in the period leading up to intervention start
+        RpreInt = mean(Rt(:, iStep-par.preIntWindow:iStep-1), 2);    
     end
 
+    % Update reproduction number Rt
   % Rt(:, iStep) = max(0, Rt(:, iStep-1) + par.deltat(iStep) + par.sigmat(iStep)*randn(par.nParticles, 1));        
    Rt(:, iStep) = Rt(:, iStep-1) .* lognrnd(par.deltat(iStep), par.sigmat(iStep), par.nParticles, 1);
 
    if par.filterImportsFlag
        It_imp(:, iStep) = poissrnd(nImpPrior(iStep), par.nParticles, 1);        % sample imported infections from the prior
    end
+
+   % Set daily aggregate infectivity (Yt)
    if isfinite(par.k)    
        Yt(:, iStep-1) = gamrnd( par.k * (It(:, iStep-1) + par.relInfImp * ~(t(iStep-1) > par.tMIQ ) *It_imp(:, iStep-1)), 1/par.k );
    else
        Yt(:, iStep-1) = It(:, iStep-1) + par.relInfImp * ~(t(iStep-1) > par.tMIQ ) * It_imp(:, iStep-1);
    end
 
+   % Compute It according to renewal equation
    ind = iStep-1:-1:max(1, iStep-length(par.GTD));
-   It(:, iStep) = poissrnd(  Rt(:, iStep) .* sum(par.GTD(1:length(ind)).*Yt(:, ind), 2 ) );       % renewal equation
+   It(:, iStep) = poissrnd(  Rt(:, iStep) .* sum(par.GTD(1:length(ind)).*Yt(:, ind), 2 ) );     
+
+   % Calculate gamma_t (using only current and previous information - no
+   % subsequent resampling)
    GammaRT(:, iStep) = sum(GTDF(1:length(ind)).*Yt(:, ind), 2 );
 
+   % Assign infections a notificatoin date and add them to the vecotr of
+   % future case notifications time series (Zt)
    ind = iStep:min(iStep+length(par.RTD)-1, nSteps);
    futureCases = mnrnd( It(:, iStep), par.RTD  );
    Zt(:, ind) = Zt(:, ind) + futureCases(:, 1:length(ind));
    
+   % Do the same for imported infections
    futureCasesImp = mnrnd( It_imp(:, iStep), par.RTD  );
    Zt_imp(:, ind) = Zt_imp(:, ind) + futureCasesImp(:, 1:length(ind));
 
    % Particle resampling (only during period for which data is available)
    if iStep <= iLastData
         if par.obsModel == "negbin" & isfinite(par.kObs)   
-           if par.filterImportsFlag
-                weightsImp = nbinpdf(nCasesImp(iStep), par.kObs, par.kObs./(par.pReport*Zt_imp(:, iStep)+par.kObs));
+           if par.filterImportsFlag     
+                weightsImp = nbinpdf(nCasesImp(iStep), par.kObs, par.kObs./(par.pReport*Zt_imp(:, iStep)+par.kObs)); % Additional weights for hte likelihood of imported case data
            else
                weightsImp = 1;
            end
             weights = weightsImp .* nbinpdf(nCasesLoc(iStep), par.kObs, par.kObs./(par.pReport*Zt(:, iStep)+par.kObs));
-           PhiRT(:, iStep) = prod( nbinpdf(0, par.kObs, par.kObs./(par.pReport * Zt(:, iStep:end) + par.kObs )) , 2);                             % Pr(no future reported cases from existing local infections)
+           PhiRT(:, iStep) = prod( nbinpdf(0, par.kObs, par.kObs./(par.pReport * Zt(:, iStep:end) + par.kObs )) , 2);                             % Calculate phi_t = Pr(no future reported cases from existing local infections)
         elseif par.obsModel == "negbin" & ~isfinite(par.kObs)
            if par.filterImportsFlag
                 weightsImp = poisspdf(nCasesImp(iStep), par.pReport*Zt_imp(:, iStep));
@@ -128,7 +139,7 @@ for iStep = 2:nSteps
                weightsImp = 1;
            end
            weights = weightsImp .* poisspdf(nCasesLoc(iStep), par.pReport*Zt(:, iStep) );
-           PhiRT(:, iStep) = poisspdf(0, par.pReport * sum(Zt(:, iStep:end), 2 ) );                             % Pr(no future reported cases from existing local infections)
+           PhiRT(:, iStep) = poisspdf(0, par.pReport * sum(Zt(:, iStep:end), 2 ) );                          
         elseif par.obsModel =="bin"
            if par.filterImportsFlag
                 weightsImp = binopdf(nCasesImp(iStep), Zt_imp(:, iStep), par.pReport);

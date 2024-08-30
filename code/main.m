@@ -11,6 +11,7 @@ resultsFolder = "../results/";
 % Outbreak labels (processed data files should be in the form label_processed.csv)
 outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
 
+
 nScenarios = 8;
 
 % Some computational settings:
@@ -34,6 +35,11 @@ for iOutbreak = 1:nOutbreaks
     if ~isConsecutive(processed.t) 
         error('Data file needs to have a field called t consisting of consecutive dates');
     end
+    
+    % If using outbreak specific SI, need to set cases for first 4 days as imported: 
+%     processed.nCasesImp(1:4) =  processed.nCasesImp(1:4) + processed.nCasesLoc(1:4);
+%     processed.nCasesLoc(1:4) = 0;
+
     
     for iScenario = 1:nScenarios
 
@@ -70,8 +76,8 @@ for iOutbreak = 1:nOutbreaks
         % Just save mean, SD, and histogram counts for RpreInt
         results.RpreInt_mean{iRow} = mean(particles.RpreInt);
         results.RpreInt_sd{iRow} = std(particles.RpreInt);
-        [edges, freq] = histcounts(particles.RpreInt);
-        results.RpreInt_edges{iRow} = edges;
+        [freq, edges] = histcounts(particles.RpreInt);
+        results.RpreInt_bins{iRow} = 0.5*(edges(1:end-1)+edges(2:end));
         results.RpreInt_freq{iRow} = freq;
         % Save mean and quantiles for end-of-outbreak probabilities
         results.PUE_mean{iRow} = mean(particles.PUE);

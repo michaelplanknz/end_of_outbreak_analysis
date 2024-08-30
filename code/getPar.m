@@ -83,8 +83,10 @@ elseif outbreakLbl == "ebola_DRC_2018"
     
     % Generation time distribution parameters
     GTmax = 50;                     % maximum time for GT distribution 
-    par.GTmean = 15.3;
-    par.GTsd = 9.3;
+    par.GTmean = 15.3;            % original
+    par.GTsd = 9.3;               % original
+%     par.GTmean = 19.46;             % outbreak specific 
+%     par.GTsd = 6.08;                % outbreak specific 
     [GTD_shape, GTD_scale] = gamShapeScale(par.GTmean, par.GTsd);
     pdfFnGTD = @(x)(gampdf(x, GTD_shape, GTD_scale ));
 
