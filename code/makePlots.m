@@ -54,6 +54,8 @@ for iOutbreak = 1:nOutbreaks
     It_quantiles = results.It_quantiles{iRow};
     Zt_quantiles = results.Zt_quantiles{iRow};
     Ct_quantiles = results.Ct_quantiles{iRow};
+    RpreInt_bins = results.RpreInt_bins{iRow};
+    RpreInt_freq = results.RpreInt_freq{iRow};
     PUE = results.PUE_mean{iRow};
     pNoInf = results.pNoInf_mean{iRow};
     pNoInfOrCases = results.pNoInfOrCases_mean{iRow};
@@ -96,8 +98,17 @@ for iOutbreak = 1:nOutbreaks
 
 
 
+%     h = figure(iFig);
+%     plot(RpreInt_bins, RpreInt_freq)
+%     xlabel('pre-intervention R')
+%     ylabel('probability density')
+%     grid on
+%     iFig = iFig+1;
 
 
+
+
+    
     scenarioKey = [1, 7, 8];
 
     h = figure(iFig);
