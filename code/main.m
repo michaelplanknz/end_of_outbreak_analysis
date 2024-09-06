@@ -36,11 +36,6 @@ for iOutbreak = 1:nOutbreaks
         error('Data file needs to have a field called t consisting of consecutive dates');
     end
     
-    % If using outbreak specific SI, need to set cases for first 4 days as imported: 
-%     processed.nCasesImp(1:4) =  processed.nCasesImp(1:4) + processed.nCasesLoc(1:4);
-%     processed.nCasesLoc(1:4) = 0;
-
-    
     for iScenario = 1:nScenarios
 
         % Get model parameters and vector of times for which simulations will be
@@ -52,7 +47,12 @@ for iOutbreak = 1:nOutbreaks
         nCasesImp = zeros(size(t));
         nCasesLoc(ismember(t, processed.t)) = processed.nCasesLoc(ismember(processed.t, t));
         nCasesImp(ismember(t, processed.t)) = processed.nCasesImp(ismember(processed.t, t));
- 
+
+        % Reassign nIndexCases from local to imported
+        nc = cumsum(nCasesLoc);
+        ind = nc <= par.nIndexCases;
+        nCasesImp(ind) = nCasesImp(ind)+nCasesLoc(ind);
+        nCasesLoc(ind) = 0;
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Model

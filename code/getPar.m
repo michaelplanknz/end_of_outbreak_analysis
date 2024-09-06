@@ -48,8 +48,8 @@ if outbreakLbl == "covid_NZ_2020"
     pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));
 
     par.filterImportsFlag = false;
+    par.nIndexCases = 0;                        % number of initial cases to reassign as imported cases 
     par.tInfImp = 5;                          % number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
-
     par.relInfImp = 0.5;
     par.tMIQ = datetime(2020, 4, 10);               % Imported cases after this date will be ignored
 
@@ -98,6 +98,7 @@ elseif outbreakLbl == "ebola_DRC_2018"
     pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));  
 
     par.filterImportsFlag = false;
+    par.nIndexCases = 1;                        % number of initial cases to reassign as imported cases
     par.tInfImp = round(RTmean_scenarios(iScenario));                          % number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
     par.relInfImp = 1;
     par.tMIQ = NaT;                                      % Imported cases after this date will be ignored
