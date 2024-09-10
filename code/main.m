@@ -12,7 +12,7 @@ resultsFolder = "../results/";
 outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
 
 
-nScenarios = 8;
+nScenarios = 9;
 
 % Some computational settings:
 ignoreDays = 30;        % for calculating time at which 95% is reached, ignore this many days at the start of the outbreak
