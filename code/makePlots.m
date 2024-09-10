@@ -66,7 +66,7 @@ for iOutbreak = 1:nOutbreaks
 
     h = figure(iFig);
     h.Position = [   190         412        1128         315];
-    tiledlayout(1, 3);
+    tiledlayout(1, 3, "TileSpacing", "Compact");
 
     nexttile;
     [x, y] = getFillArgs(t, Rt_quantiles(1, :), Rt_quantiles(3, :) );
@@ -128,7 +128,7 @@ for iOutbreak = 1:nOutbreaks
 
     h = figure(iFig);
     h.Position = [           437          46        1049         918];
-    tiledlayout(3, 1);
+    tiledlayout(3, 1, "TileSpacing", "Compact");
     for iPlot = 1:length(scenarioKey)
         iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == scenarioKey(iPlot) );
 

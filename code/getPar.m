@@ -4,10 +4,10 @@ function [t, par] = getPar(outbreakLbl, iScenario)
 par.nParticles = 1e5;
 
 
-k_scenarios = [inf; inf; inf; inf; inf; inf; 1; 0.2];
 
 if outbreakLbl == "covid_NZ_2020"
     % Set arrays of parameters varied from one scenairo to the next
+    k_scenarios = [0.41; 0.41; 0.41; 0.41; 0.41; 0.41; inf; 1; 0.2];
     pReport_scenarios = [0.4; 0.4; 0.7; 0.7; 1; 1; 0.4; 0.4];
     RTmean_scenarios = [7.7; 11.2; 7.7; 11.2; 7.7; 11.2; 7.7; 7.7];
     RTsd_scenarios   = [3.2; 4.7; 3.2; 4.7; 3.2; 4.7; 3.2; 3.2];
@@ -60,6 +60,7 @@ if outbreakLbl == "covid_NZ_2020"
 
 
 elseif outbreakLbl == "ebola_DRC_2018"
+    k_scenarios = [0.18; 0.18; 0.18; 0.18; 0.18; 0.18; inf; 1; 0.2];
     pReport_scenarios = [0.8; 0.8; 0.9; 0.9; 1; 1; 0.8; 0.8];
     RTmean_scenarios = [6.2; 11.2; 6.2; 11.2; 6.2; 11.2; 6.2; 6.2 ];
     RTsd_scenarios =   [1.6; 4.3; 1.6; 4.3; 1.6; 4.3; 1.6; 1.6];
