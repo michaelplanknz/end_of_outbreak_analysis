@@ -123,6 +123,56 @@ for iOutbreak = 1:nOutbreaks
 
 
 
+
+
+    scenarioKey = 1:6;
+    colOrd = colororder;
+    col = repelem( colOrd(1:3, :), 2, 1);
+    lt = repmat( ["-"; "--"], 3, 1);
+
+    h = figure(iFig);
+    h.Position = [          242         308        1277         587];
+    yyaxis left
+    bh = bar(processed.t, [processed.nCasesImp, processed.nCasesLoc]', 'stacked' );
+    bh(1).FaceColor =  [0.67578 0.84375 0.89844];  
+    bh(2).FaceColor = [0 0 1]; 
+    ylabel('daily case notifications')
+    if outbreakLbl(iOutbreak) == "covid_NZ_2020"
+       ylim([0 100])
+    else
+        ylim([0 10])
+    end
+    yyaxis right
+
+    scLabel = strings(1, length(scenarioKey));
+    for iPlot = 1:length(scenarioKey)
+        iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == scenarioKey(iPlot) );
+        t = results.t{iRow};
+        par = results.par{iRow};
+        pNoInf = results.pNoInf_mean{iRow};
+        RTmean = sum( (0:length(par.RTD)-1).*par.RTD );
+        scLabel(iPlot) = "\alpha="+string(sprintf('%.1f, ', par.pReport))+"t_n="+string(sprintf('%.1f days', RTmean));
+        plot(t(iMinPlot:end), pNoInf(iMinPlot:end), 'Color', col(iPlot, :), 'LineStyle', lt(iPlot), 'Marker', 'none' )
+        hold on
+    end
+
+    xline(par.tRampStart, 'k:');
+    ylabel('P(end of outbreak)')
+    legend(["data - imported cases", "data - local cases", scLabel], 'Location', 'southeast')
+    xlim( [processed.t(1)-1, t(end)  ] )
+    ax = gca;
+    ax.YAxis(1).Color = 'k';
+    ax.YAxis(2).Color = 'k';
+    grid on
+    if saveFlag 
+        saveas(h, figuresFolder+sprintf('fig%i.png', iFig));
+    end
+    iFig = iFig+1;
+
+
+
+
+
     
     scenarioKey = 7:9;
 
@@ -178,54 +228,6 @@ for iOutbreak = 1:nOutbreaks
 
 
 
-
-
-
-
-
-    scenarioKey = 1:6;
-    colOrd = colororder;
-    col = repelem( colOrd(1:3, :), 2, 1);
-    lt = repmat( ["-"; "--"], 3, 1);
-
-    h = figure(iFig);
-    h.Position = [          242         308        1277         587];
-    yyaxis left
-    bh = bar(processed.t, [processed.nCasesImp, processed.nCasesLoc]', 'stacked' );
-    bh(1).FaceColor =  [0.67578 0.84375 0.89844];  
-    bh(2).FaceColor = [0 0 1]; 
-    ylabel('daily case notifications')
-    if outbreakLbl(iOutbreak) == "covid_NZ_2020"
-       ylim([0 100])
-    else
-        ylim([0 10])
-    end
-    yyaxis right
-
-    scLabel = strings(1, length(scenarioKey));
-    for iPlot = 1:length(scenarioKey)
-        iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == scenarioKey(iPlot) );
-        t = results.t{iRow};
-        par = results.par{iRow};
-        pNoInf = results.pNoInf_mean{iRow};
-        RTmean = sum( (0:length(par.RTD)-1).*par.RTD );
-        scLabel(iPlot) = "\alpha="+string(sprintf('%.1f, ', par.pReport))+"t_n="+string(sprintf('%.1f days', RTmean));
-        plot(t(iMinPlot:end), pNoInf(iMinPlot:end), 'Color', col(iPlot, :), 'LineStyle', lt(iPlot), 'Marker', 'none' )
-        hold on
-    end
-
-    xline(par.tRampStart, 'k:');
-    ylabel('P(end of outbreak)')
-    legend(["data - imported cases", "data - local cases", scLabel], 'Location', 'southeast')
-    xlim( [processed.t(1)-1, t(end)  ] )
-    ax = gca;
-    ax.YAxis(1).Color = 'k';
-    ax.YAxis(2).Color = 'k';
-    grid on
-    if saveFlag 
-        saveas(h, figuresFolder+sprintf('fig%i.png', iFig));
-    end
-    iFig = iFig+1;
 
 
     scenarioKey = 1:6;
