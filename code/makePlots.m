@@ -54,6 +54,8 @@ for iOutbreak = 1:nOutbreaks
     It_quantiles = results.It_quantiles{iRow};
     Zt_quantiles = results.Zt_quantiles{iRow};
     Ct_quantiles = results.Ct_quantiles{iRow};
+    RpreInt_mean = results.RpreInt_mean{iRow};
+    RpreInt_sd = results.RpreInt_sd{iRow};
     RpreInt_bins = results.RpreInt_bins{iRow};
     RpreInt_freq = results.RpreInt_freq{iRow};
     PUE = results.PUE_mean{iRow};
@@ -111,7 +113,7 @@ for iOutbreak = 1:nOutbreaks
     xlim([processed.t(1)-1, t(end) ]);
     ax = gca;
     ax.YAxis(1).Color = 'k';
-    ax.YAxis(2).Color = 'k';
+    ax.YAxis(2).Color = 'b';
     grid on
     title('(c)')
 
@@ -173,7 +175,7 @@ for iOutbreak = 1:nOutbreaks
 
 
 
-    
+
     scenarioKey = 7:9;
 
     h = figure(iFig);
