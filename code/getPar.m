@@ -1,16 +1,17 @@
-function [t, par] = getPar(outbreakLbl, iScenario)
+function [t, par] = getPar(outbreakLbl, sensitivityFlag, iScenario)
 
 
 par.nParticles = 1e5;
 
 
+k_scenarios = [inf; inf; inf; inf; inf; inf; 1; 0.2];
 
 if outbreakLbl == "covid_NZ_2020"
     % Set arrays of parameters varied from one scenairo to the next
-    k_scenarios = [0.41; 0.41; 0.41; 0.41; 0.41; 0.41; inf; 1; 0.2];
-    pReport_scenarios = [0.4; 0.4; 0.7; 0.7; 1; 1; 0.4; 0.4; 0.4];
-    RTmean_scenarios = [7.7; 11.2; 7.7; 11.2; 7.7; 11.2; 7.7; 7.7; 7.7];
-    RTsd_scenarios   = [3.2; 4.7; 3.2; 4.7; 3.2; 4.7; 3.2; 3.2; 3.2];
+
+    pReport_scenarios = [0.4; 0.4; 0.7; 0.7; 1; 1; 0.4; 0.4];
+    RTmean_scenarios = [7.7; 11.2; 7.7; 11.2; 7.7; 11.2; 7.7; 7.7];
+    RTsd_scenarios   = [3.2; 4.7; 3.2; 4.7; 3.2; 4.7; 3.2; 3.2];
 
     
     date0 = datetime(2020, 2, 26);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
@@ -60,10 +61,9 @@ if outbreakLbl == "covid_NZ_2020"
 
 
 elseif outbreakLbl == "ebola_DRC_2018"
-    k_scenarios = [0.18; 0.18; 0.18; 0.18; 0.18; 0.18; inf; 1; 0.2];
-    pReport_scenarios = [0.8; 0.8; 0.9; 0.9; 1; 1; 0.8; 0.8; 0.8];
-    RTmean_scenarios = [6.2; 11.2; 6.2; 11.2; 6.2; 11.2; 6.2; 6.2; 6.2 ];
-    RTsd_scenarios =   [1.6; 4.3; 1.6; 4.3; 1.6; 4.3; 1.6; 1.6; 1.6];
+    pReport_scenarios = [0.8; 0.8; 0.9; 0.9; 1; 1; 0.8; 0.8];
+    RTmean_scenarios = [6.2; 11.2; 6.2; 11.2; 6.2; 11.2; 6.2; 6.2];
+    RTsd_scenarios =   [1.6; 4.3; 1.6; 4.3; 1.6; 4.3; 1.6; 1.6];
 
     date0 = datetime(2018, 4, 5);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
     date1 = datetime(2018, 8, 20);           % End date for simulation 
@@ -83,11 +83,14 @@ elseif outbreakLbl == "ebola_DRC_2018"
     [par.R_shape, par.R_scale] = gamShapeScale(2.5, 1 );                    % shape-scale parameters for prior for initial R
     
     % Generation time distribution parameters
-    GTmax = 50;                     % maximum time for GT distribution 
-    par.GTmean = 15.3;            % original
-    par.GTsd = 9.3;               % original
-%     par.GTmean = 19.46;             % outbreak specific 
-%     par.GTsd = 6.08;                % outbreak specific 
+    GTmax = 50;                     % maximum time for GT distribution
+    if sensitivityFlag == 0
+        par.GTmean = 15.3;            % original
+        par.GTsd = 9.3;               % original
+    else
+        par.GTmean = 19.46;             % outbreak specific 
+        par.GTsd = 6.08;                % outbreak specific 
+    end
     [GTD_shape, GTD_scale] = gamShapeScale(par.GTmean, par.GTsd);
     pdfFnGTD = @(x)(gampdf(x, GTD_shape, GTD_scale ));
 
@@ -99,7 +102,11 @@ elseif outbreakLbl == "ebola_DRC_2018"
     pdfFnRTD = @(x)(gampdf(x, RTD_shape, RTD_scale));  
 
     par.filterImportsFlag = false;
-    par.nIndexCases = 1;                        % number of initial cases to reassign as imported cases
+    if sensitivityFlag == 0
+        par.nIndexCases = 1;                        % number of initial cases to reassign as imported cases
+    else
+        par.nIndexCases = 2;
+    end
     par.tInfImp = round(RTmean_scenarios(iScenario));                          % number of days imported cases are assumed to have been infectious in community before case notifiction (no assumptions about infectious period ending on notification date or starting after arrival date)
     par.relInfImp = 1;
     par.tMIQ = NaT;                                      % Imported cases after this date will be ignored

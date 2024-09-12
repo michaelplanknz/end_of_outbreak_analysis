@@ -42,11 +42,11 @@ fprintf(fid, '\\hline\n');
 
 iMinPlot = 30;          % don't plot the first part of the p(end of out break) curves which are >0 at the start of the outbreak
 iFig = 1;    
-for iOutbreak = 1:nOutbreaks
+for iOutbreak = 1:2
     fNameData = sprintf('%s_processed.csv', outbreakLbl(iOutbreak));
     processed = readtable(dataFolder+fNameData);
 
-    iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == baseScenario);
+    iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.sensitivityFlag == sensitivityFlag(iOutbreak) & results.iScenario == baseScenario);
 
     t = results.t{iRow};
     par = results.par{iRow};
@@ -107,7 +107,7 @@ for iOutbreak = 1:nOutbreaks
     ylabel('daily local case notifications')
     yyaxis right
     plot(t(iMinPlot:end), pNoInf(iMinPlot:end), 'b-')    
-    ylabel('P(end of outbreak)')
+    ylabel('end of outbreak probability (P_0)')
     xline(par.tRampStart, 'k:');
     %xlim([processed.t(1)-1, processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
     xlim([processed.t(1)-1, t(end) ]);
@@ -148,7 +148,7 @@ for iOutbreak = 1:nOutbreaks
 
     scLabel = strings(1, length(scenarioKey));
     for iPlot = 1:length(scenarioKey)
-        iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == scenarioKey(iPlot) );
+        iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.sensitivityFlag == sensitivityFlag(iOutbreak) & results.iScenario == scenarioKey(iPlot) );
         t = results.t{iRow};
         par = results.par{iRow};
         pNoInf = results.pNoInf_mean{iRow};
@@ -159,7 +159,7 @@ for iOutbreak = 1:nOutbreaks
     end
 
     xline(par.tRampStart, 'k:');
-    ylabel('P(end of outbreak)')
+    ylabel('end of outbreak probability (P_0)')
     legend(["data - imported cases", "data - local cases", scLabel], 'Location', 'southeast')
     xlim( [processed.t(1)-1, t(end)  ] )
     ax = gca;
@@ -176,13 +176,13 @@ for iOutbreak = 1:nOutbreaks
 
 
 
-    scenarioKey = 7:9;
+    scenarioKey = [5, 7, 8];
 
     h = figure(iFig);
     h.Position = [           437          46        1049         918];
     tiledlayout(3, 1, "TileSpacing", "Compact");
     for iPlot = 1:length(scenarioKey)
-        iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.iScenario == scenarioKey(iPlot) );
+        iRow = find(results.outbreak == outbreakLbl(iOutbreak) & results.sensitivityFlag == sensitivityFlag(iOutbreak) & results.iScenario == scenarioKey(iPlot) );
 
         t = results.t{iRow};
         par = results.par{iRow};
@@ -204,9 +204,9 @@ for iOutbreak = 1:nOutbreaks
         yyaxis right
         plot(t(iMinPlot:end), PUE(iMinPlot:end), 'b-', t(iMinPlot:end), pNoInf(iMinPlot:end), 'b--', t(iMinPlot:end), pNoInfOrCases(iMinPlot:end), 'b:' )
         xline(par.tRampStart, 'k:');
-        ylabel('P(end of outbreak)')
+        ylabel('end of outbreak probability')
         if iPlot == length(scenarioKey)
-            legend('data - imported cases', 'data - local cases',  'ultimate extinction', 'no future transmission', "no future transmission or notifications", 'Location', 'southeast')
+            legend('data - imported cases', 'data - local cases',  'PUE', 'P_0', "P_{00}", 'Location', 'southeast')
         end
         xlim( [processed.t(1)-1, t(end)  ] )
         ax = gca;
@@ -230,21 +230,21 @@ for iOutbreak = 1:nOutbreaks
 
 
 
-
-
-    scenarioKey = 1:6;
-    rowKey = find(results.outbreak == outbreakLbl(iOutbreak) & ismember(results.iScenario, scenarioKey) );
-    if outbreakLbl(iOutbreak) == "covid_NZ_2020"
-        fprintf(fid, '\\multicolumn{3}{l}{ \\bf Covid-19} \\\\ \n');
-    elseif outbreakLbl(iOutbreak) == "ebola_DRC_2018"
-        fprintf(fid, '\\multicolumn{3}{l}{ \\bf Ebola} \\\\ \n');
+    if ~sensitivityFlag(iOutbreak)
+    
+        scenarioKey = 1:6;
+        rowKey = find(results.outbreak == outbreakLbl(iOutbreak) & ismember(results.iScenario, scenarioKey) );
+        if outbreakLbl(iOutbreak) == "covid_NZ_2020"
+            fprintf(fid, '\\multicolumn{3}{l}{ \\bf Covid-19} \\\\ \n');
+        elseif outbreakLbl(iOutbreak) == "ebola_DRC_2018"
+            fprintf(fid, '\\multicolumn{3}{l}{ \\bf Ebola} \\\\ \n');
+        end
+        fprintf(fid, ' &  $t_n=%.1f$ days & $t_n=%.1f$ days \\\\ \n', results.par{rowKey(1)}.RTmean, results.par{rowKey(2)}.RTmean);
+        fprintf(fid, '$\\alpha=%.1f$ & %s & %s \\\\ \n ', results.par{rowKey(1)}.pReport, string(results.tpNoInf95{rowKey(1)}) , string(results.tpNoInf95{rowKey(2)}) );
+        fprintf(fid, '$\\alpha=%.1f$ & %s & %s \\\\ \n ', results.par{rowKey(3)}.pReport, string(results.tpNoInf95{rowKey(3)}) , string(results.tpNoInf95{rowKey(4)}) );
+        fprintf(fid, '$\\alpha=%.1f$ & %s & %s \\\\ \n ', results.par{rowKey(5)}.pReport, string(results.tpNoInf95{rowKey(5)}) , string(results.tpNoInf95{rowKey(6)}) );
+        fprintf(fid, '\\hline\n');
     end
-    fprintf(fid, ' &  $t_n=%.1f$ days & $t_n=%.1f$ days \\\\ \n', results.par{rowKey(1)}.RTmean, results.par{rowKey(2)}.RTmean);
-    fprintf(fid, '$\\alpha=%.1f$ & %s & %s \\\\ \n ', results.par{rowKey(1)}.pReport, string(results.tpNoInf95{rowKey(1)}) , string(results.tpNoInf95{rowKey(2)}) );
-    fprintf(fid, '$\\alpha=%.1f$ & %s & %s \\\\ \n ', results.par{rowKey(3)}.pReport, string(results.tpNoInf95{rowKey(3)}) , string(results.tpNoInf95{rowKey(4)}) );
-    fprintf(fid, '$\\alpha=%.1f$ & %s & %s \\\\ \n ', results.par{rowKey(5)}.pReport, string(results.tpNoInf95{rowKey(5)}) , string(results.tpNoInf95{rowKey(6)}) );
-    fprintf(fid, '\\hline\n');
-
 end
 
 fprintf(fid, '\\end{tabular} \n');

@@ -9,10 +9,10 @@ dataFolder = "../processed_data/";
 resultsFolder = "../results/";
 
 % Outbreak labels (processed data files should be in the form label_processed.csv)
-outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];
+outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018", "ebola_DRC_2018"];
+sensitivityFlag = [0, 0, 1];
 
-
-nScenarios = 9;
+nScenarios = 8;
 
 % Some computational settings:
 ignoreDays = 30;        % for calculating time at which 95% is reached, ignore this many days at the start of the outbreak
@@ -40,7 +40,7 @@ for iOutbreak = 1:nOutbreaks
 
         % Get model parameters and vector of times for which simulations will be
         % run
-        [t, par] = getPar(outbreakLbl(iOutbreak), iScenario);
+        [t, par] = getPar(outbreakLbl(iOutbreak), sensitivityFlag(iOutbreak), iScenario);
 
         % Copy imported data onto the time array returned by getPar
         nCasesLoc = zeros(size(t));
@@ -63,6 +63,7 @@ for iOutbreak = 1:nOutbreaks
         
         % Store results for saving in a structrue:
         results.outbreak(iRow) = outbreakLbl(iOutbreak);
+        results.sensitivityFlag(iRow) = sensitivityFlag(iOutbreak);
         results.iScenario(iRow) = iScenario;
         results.t{iRow} = t;
         results.par{iRow} = par;
