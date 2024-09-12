@@ -165,18 +165,15 @@ for iStep = 2:nSteps
         lmw(iStep) = log(mean(weights));
         
 
-        try       
-            resampInd = randsample(par.nParticles, par.nParticles, true, weights);
-        catch
-            stop
-        end
-        
-
         % Resample particles according to weights
         % NB GammaRT is not resampled because it represents the future
         % force of infection estimated with information known up to a given
         % point in time. Similarly for PhiRT 
-        iResample = max(1, iStep-par.resampleLag);
+        resampInd = randsample(par.nParticles, par.nParticles, true, weights);      % indices of resampled particles
+        
+        iResample = max(1, iStep-par.resampleLag);                                  % minimum time index to resample (fixed-lag)
+
+        % Do the resampling:
         Rt(:, iResample:end) = Rt(resampInd, iResample:end);
         It(:, iResample:end) = It(resampInd, iResample:end);
         Yt(:, iResample:end) = Yt(resampInd, iResample:end);
