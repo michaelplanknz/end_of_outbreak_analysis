@@ -2,7 +2,9 @@
 
 Data and code to reproduce the results in the article ``Robust estimation of end-of-outbreak probabilities in the presence of case underascertainment and reporting lags''. 
 
-A preprint of the article is available at XXX. Results in this version were generated using the version of the repository tagged v1.0.
+A preprint of the article is available at 
+[https://doi.org/10.48550/arXiv.2409.16531](
+https://doi.org/10.48550/arXiv.2409.16531). Results in this version were generated using the version of the repository tagged v1.0.
 
 # How to use this repository
 
