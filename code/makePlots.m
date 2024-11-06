@@ -180,7 +180,7 @@ for iOutbreak = 1:2
 
 
 
-    scenarioKey = [5, 7, 8];
+    scenarioKey = [1, 7, 8];
 
     h = figure(iFig);
     h.Position = [           437          46        1049         918];
