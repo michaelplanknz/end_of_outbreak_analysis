@@ -20,6 +20,8 @@ lightGreen = [0.8 1 0.7];
 darkGreen = [0.2 0.6 0.1];
 lightRed = [1 0.8 0.7];
 darkRed = [0.6 0.2 0.1];
+lightBlue = [0.7 0.8 1];
+darkBlue = [0.1 0.2 0.6];
 
 
 if saveFlag
@@ -106,6 +108,8 @@ for iOutbreak = 1:2
     end
     ylabel('daily local case notifications')
     yyaxis right
+    [x, y] = getFillArgs(t(iMinPlot:end), pNoInf_quantiles(1, iMinPlot:end), pNoInf_quantiles(3, iMinPlot:end) );
+    fill(x, y, lightBlue, 'LineStyle', 'none' )
     plot(t(iMinPlot:end), pNoInf(iMinPlot:end), 'b-')    
     ylabel('end of outbreak probability (P_0)')
     xline(par.tRampStart, 'k:');
@@ -267,98 +271,94 @@ end
 
 
 % Additional figures
-% 
-% for iOutbreak = 1:nOutbreaks
-%     fNameData = sprintf('%s_processed.csv', outbreakLbl(iOutbreak));
-%     processed = readtable(dataFolder+fNameData);
-% 
-%     for iScenario = 1:nScenarios
-%         iRow = iScenario + nScenarios*(iOutbreak-1);
-% 
-%         t = results.t{iRow};
-%         par = results.par{iRow};
-%         Rt_quantiles = results.Rt_quantiles{iRow};
-%         It_quantiles = results.It_quantiles{iRow};
-%         Zt_quantiles = results.Zt_quantiles{iRow};
-%         It_imp_quantiles = results.It_imp_quantiles{iRow};
-%         Zt_imp_quantiles = results.Zt_imp_quantiles{iRow};
-%         Ct_quantiles = results.Ct_quantiles{iRow};
-%         pNoInf_quantiles = results.pNoInf_quantiles{iRow};
-%         PUE = results.PUE_mean{iRow};
-%         pNoInf = results.pNoInf_mean{iRow};
-%         pNoInfOrCases = results.pNoInfOrCases_mean{iRow};
-% 
-%         h = figure;
-%         h.Position = [ 273   236   778   612];
-%         tiledlayout(2, 2);
-%     
-%         nexttile;
-%         [x, y] = getFillArgs(t, Rt_quantiles(1, :), Rt_quantiles(3, :) );
-%         fill( x, y, lightGreen, 'LineStyle', 'none'  )
-%         hold on
-%         plot(t, Rt_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
-%         xline(par.tRampStart, 'k:');
-%         ylabel('reproduction number')
-%         xlim([processed.t(1)-1, processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
-%         grid on
-%         title('(a)')
-%        
-%         nexttile;
-%         [x, y] = getFillArgs(t, It_quantiles(1, :), It_quantiles(3, :) );
-%         fill( x, y, lightGreen, 'LineStyle', 'none'  )
-%         hold on
-%         plot(t, It_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
-%         xline(par.tRampStart, 'k:');
-%         ylabel('daily local infections')
-%         xlim([processed.t(1)-1, processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
-%         grid on
-%         title('(b)')
-%             
-%         nexttile;
-%         [x, y] = getFillArgs(t, Ct_quantiles(1, :), Ct_quantiles(3, :) );
-%         fill( x, y, lightGreen, 'LineStyle', 'none'  )
-%         hold on
-%         plot(t, Ct_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
-%         plot(processed.t, processed.nCasesLoc, 'bo' )
-%         xline(par.tRampStart, 'k:');
-%         ylabel('simulated daily local cases')
-%         xlim([processed.t(1)-1, processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
-%         grid on
-%         title('(c)')
-% 
-%         nexttile;
-%         [x, y] = getFillArgs(t(iMinPlot:end), pNoInf_quantiles(1, iMinPlot:end), pNoInf_quantiles(3, iMinPlot:end) );
-%         fill( x, y, lightGreen, 'LineStyle', 'none'  )
-%         hold on
-%         plot(t(iMinPlot:end), pNoInf_quantiles(2, iMinPlot:end) , 'Color', darkGreen, 'LineStyle', '-')
-%         ylabel('P(end of outbreak)')
-%         xlim([t(iMinPlot), t(end) ]);
-%         grid on
-%         title('(d)')
-% 
-% 
-%         % nexttile;
-%         % fill( [t, fliplr(t)], [It_imp_quantiles(1, :), fliplr(It_imp_quantiles(3, :))], lightGreen, 'LineStyle', 'none'  )
-%         % hold on
-%         % plot(t, It_imp_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
-%         % xline(par.tRampStart, 'k:');
-%         % ylabel('daily imported infections')
-%         % xlim([processed.t(1)-1, processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
-%         % grid on
-%         % title('(e)')
-%         % 
-%         % nexttile;
-%         % fill( [t, fliplr(t)], par.pReport * [Zt_imp_quantiles(1, :), fliplr(Zt_imp_quantiles(3, :))], lightGreen, 'LineStyle', 'none'  )
-%         % hold on
-%         % plot(t, par.pReport * Zt_imp_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
-%         % plot(processed.t, processed.nCasesImp, 'bo')
-%         % xline(par.tRampStart, 'k:');
-%         % ylabel('expected daily imported cases')
-%         % xlim([processed.t(1)-1, processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
-%         % grid on
-%         % title('(f)')
-%         
-%     end
-% end
-% 
+ttls = ["(a)", "(b)", "(c)", "(d)", "(e)", "(f)"];
+
+for iOutbreak = 1:2
+    fNameData = sprintf('%s_processed.csv', outbreakLbl(iOutbreak));
+    processed = readtable(dataFolder+fNameData);
+    
+    scenarioSet{1} = 1:6;
+    scenarioSet{2} = [1 7 8];
+    
+    for iSet = 1:2
+        h = figure(iFig);
+        h.Position = [     255          41        1128        179*length(scenarioSet{iSet}) ];
+        tiledlayout(length(scenarioSet{iSet}), 3, "TileSpacing", "Compact");
+    
+        for ii = 1:length(scenarioSet{iSet})
+            iScenario = scenarioSet{iSet}(ii);
+            iRow = iScenario + nScenarios*(iOutbreak-1);
+    
+            t = results.t{iRow};
+            par = results.par{iRow};
+            Rt_quantiles = results.Rt_quantiles{iRow};
+            It_quantiles = results.It_quantiles{iRow};
+            Zt_quantiles = results.Zt_quantiles{iRow};
+            It_imp_quantiles = results.It_imp_quantiles{iRow};
+            Zt_imp_quantiles = results.Zt_imp_quantiles{iRow};
+            Ct_quantiles = results.Ct_quantiles{iRow};
+            pNoInf_quantiles = results.pNoInf_quantiles{iRow};
+            PUE = results.PUE_mean{iRow};
+            pNoInf = results.pNoInf_mean{iRow};
+            pNoInfOrCases = results.pNoInfOrCases_mean{iRow};
+    
+    
+            
+    
+        
+            nexttile;
+            [x, y] = getFillArgs(t, Rt_quantiles(1, :), Rt_quantiles(3, :) );
+            fill( x, y, lightGreen, 'LineStyle', 'none'  )
+            hold on
+            plot(t, Rt_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
+            xline(par.tRampStart, 'k:');
+            ylabel('reproduction number')
+            xlim([processed.t(1)-1, t(end) ]);
+            grid on
+           
+            nexttile;
+            [x, y] = getFillArgs(t, It_quantiles(1, :), It_quantiles(3, :) );
+            fill( x, y, lightGreen, 'LineStyle', 'none'  )
+            hold on
+            plot(t, It_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
+            xline(par.tRampStart, 'k:');
+            ylabel('daily new local infections')
+            xlim([processed.t(1)-1, t(end) ]);
+            grid on
+            title(ttls(ii));
+        
+            nexttile;
+            yyaxis left
+            [x, y] = getFillArgs(t, Ct_quantiles(1, :), Ct_quantiles(3, :) );
+            fill( x, y, lightGreen, 'LineStyle', 'none'  )
+            hold on
+            plot(t, Ct_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
+            plot(processed.t, processed.nCasesLoc, 'k.' )
+            if outbreakLbl(iOutbreak) == "covid_NZ_2020"
+                ylim([0 100])
+            else
+                ylim([0 10])
+            end
+            ylabel('daily local case notifications')
+            yyaxis right
+            [x, y] = getFillArgs(t(iMinPlot:end), pNoInf_quantiles(1, iMinPlot:end), pNoInf_quantiles(3, iMinPlot:end) );
+            fill(x, y, lightBlue, 'LineStyle', 'none' )
+            plot(t(iMinPlot:end), pNoInf(iMinPlot:end), 'b-')    
+            ylabel('end of outbreak probability (P_0)')
+            xline(par.tRampStart, 'k:');
+            %xlim([processed.t(1)-1, processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
+            xlim([processed.t(1)-1, t(end) ]);
+            ax = gca;
+            ax.YAxis(1).Color = 'k';
+            ax.YAxis(2).Color = 'b';
+            grid on
+    
+        end
+        if saveFlag 
+          saveas(h, figuresFolder+sprintf('fig%i.png', iFig));
+        end
+        iFig = iFig+1;
+    end
+end
+
 

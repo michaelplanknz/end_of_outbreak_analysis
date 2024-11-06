@@ -8,6 +8,7 @@ old/
 *.mat
 *.zip
 *.bbl
+*.tmp
 temp.*
 linelist_20180620.xlsx
 linelist_20180620.csv
