@@ -5,7 +5,7 @@ close all
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plotting
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-saveFlag = false;
+saveFlag = true;
 
 dataFolder = "../processed_data/";
 resultsFolder = "../results/";
@@ -20,9 +20,9 @@ lightGreen = [0.8 1 0.7];
 darkGreen = [0.2 0.6 0.1];
 lightRed = [1 0.8 0.7];
 darkRed = [0.6 0.2 0.1];
-lightBlue = [0.7 0.8 1];
+lightBlue = [0.75 0.85 1];
 darkBlue = [0.1 0.2 0.6];
-
+FaceAlpha = 0.5;
 
 if saveFlag
     fOut = resultsFolder+"table.tex";
@@ -97,7 +97,7 @@ for iOutbreak = 1:2
     nexttile;
     yyaxis left
     [x, y] = getFillArgs(t, Ct_quantiles(1, :), Ct_quantiles(3, :) );
-    fill( x, y, lightGreen, 'LineStyle', 'none'  )
+    fill( x, y, lightGreen, 'LineStyle', 'none' )
     hold on
     plot(t, Ct_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
     plot(processed.t, processed.nCasesLoc, 'k.' )
@@ -323,7 +323,7 @@ for iOutbreak = 1:2
             hold on
             plot(t, It_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
             xline(par.tRampStart, 'k:');
-            ylabel('daily new local infections')
+            ylabel('daily local infections')
             xlim([processed.t(1)-1, t(end) ]);
             grid on
             title(ttls(ii));
@@ -331,7 +331,7 @@ for iOutbreak = 1:2
             nexttile;
             yyaxis left
             [x, y] = getFillArgs(t, Ct_quantiles(1, :), Ct_quantiles(3, :) );
-            fill( x, y, lightGreen, 'LineStyle', 'none'  )
+            fill( x, y, lightGreen, 'LineStyle', 'none', 'FaceAlpha', FaceAlpha   )
             hold on
             plot(t, Ct_quantiles(2, :), 'Color', darkGreen, 'LineStyle', '-')
             plot(processed.t, processed.nCasesLoc, 'k.' )
@@ -340,12 +340,12 @@ for iOutbreak = 1:2
             else
                 ylim([0 10])
             end
-            ylabel('daily local case notifications')
+            ylabel('daily local cases')
             yyaxis right
             [x, y] = getFillArgs(t(iMinPlot:end), pNoInf_quantiles(1, iMinPlot:end), pNoInf_quantiles(3, iMinPlot:end) );
-            fill(x, y, lightBlue, 'LineStyle', 'none' )
+            fill(x, y, lightBlue, 'LineStyle', 'none', 'FaceAlpha', FaceAlpha  )
             plot(t(iMinPlot:end), pNoInf(iMinPlot:end), 'b-')    
-            ylabel('end of outbreak probability (P_0)')
+            ylabel('P_0')
             xline(par.tRampStart, 'k:');
             %xlim([processed.t(1)-1, processed.t(find(processed.nCasesLoc > 0, 1, 'last')+7) ]);
             xlim([processed.t(1)-1, t(end) ]);
