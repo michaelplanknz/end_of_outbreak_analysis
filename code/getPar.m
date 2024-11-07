@@ -4,16 +4,19 @@ function [t, par] = getPar(outbreakLbl, sensitivityFlag, iScenario)
 par.nParticles = 1e5;
 
 
-k_scenarios = [inf; inf; inf; inf; inf; inf; 1; 0.2];
+k_scenarios = [inf; inf; inf; inf; inf; inf; 1; 0.2;      inf; inf; inf; inf];
+sigmaR_scenarios = [0.05*ones(8, 1);      0.025; 0.1; 0.05; 0.05];
+deltaR_scenarios = -[0.1*ones(8, 1);      0.1;   0.1; 0.05; 0.2];
 
 if outbreakLbl == "covid_NZ_2020"
     % Set arrays of parameters varied from one scenairo to the next
 
-    pReport_scenarios = [0.4; 0.4; 0.7; 0.7; 1; 1; 0.4; 0.4];
-    RTmean_scenarios = [7.7; 11.2; 7.7; 11.2; 7.7; 11.2; 7.7; 7.7];
+    pReport_scenarios = [0.4; 0.4; 0.7; 0.7; 1; 1; 0.4; 0.4;             0.4; 0.4; 0.4; 0.4];
+    RTmean_scenarios = [7.7; 11.2; 7.7; 11.2; 7.7; 11.2; 7.7; 7.7;       7.7; 7.7; 7.7; 7.7];
     RTsd_scenarios   = nan(size(RTmean_scenarios));
-    RTsd_scnearios(RTmean_scenarios == 7.7) = 3.2;
-    RTsd_scnearios(RTmean_scenarios == 11.2) = 4.7;
+    RTsd_scenarios(RTmean_scenarios == 7.7) = 3.2;
+    RTsd_scenarios(RTmean_scenarios == 11.2) = 4.7;
+
 
     
     date0 = datetime(2020, 2, 26);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
@@ -24,9 +27,9 @@ if outbreakLbl == "covid_NZ_2020"
     par.tRampStart = datetime(2020, 3, 23);
     par.rampDur = 7;                    % duration of intervention-related change in Rt
     
-    par.sigmaR = 0.05;                % S.D. in random walk step for log Rt
-    par.sigmaR_control = 0.2;          % S.D. in random walk step for log Rt during rapid intervention-associated change
-    par.deltaR_control = -0.1;         % Mean of random walk step for log Rt during rapid intervention-associated change
+    par.sigmaR = sigmaR_scenarios(iScenario);                % S.D. in random walk step for log Rt
+    par.sigmaR_control = 0.2;                                % S.D. in random walk step for log Rt during rapid intervention-associated change
+    par.deltaR_control = deltaR_scenarios(iScenario);         % Mean of random walk step for log Rt during rapid intervention-associated change
 
     par.k = k_scenarios(iScenario);                % overdispersion parameter for offspring distribution (set to inf for a Poission distribution)
 
@@ -63,11 +66,11 @@ if outbreakLbl == "covid_NZ_2020"
 
 
 elseif outbreakLbl == "ebola_DRC_2018"
-    pReport_scenarios = [0.8; 0.8; 0.9; 0.9; 1; 1; 0.8; 0.8];
-    RTmean_scenarios = [6.2; 11.2; 6.2; 11.2; 6.2; 11.2; 6.2; 6.2];
+    pReport_scenarios = [0.8; 0.8; 0.9; 0.9; 1; 1; 0.8; 0.8;               0.8; 0.8; 0.8; 0.8];
+    RTmean_scenarios = [6.2; 11.2; 6.2; 11.2; 6.2; 11.2; 6.2; 6.2;         6.2; 6.2; 6.2; 6.2];
     RTsd_scenarios   = nan(size(RTmean_scenarios));
-    RTsd_scnearios(RTmean_scenarios == 6.2) = 1.6;
-    RTsd_scnearios(RTmean_scenarios == 11.2) = 4.3;
+    RTsd_scenarios(RTmean_scenarios == 6.2) = 1.6;
+    RTsd_scenarios(RTmean_scenarios == 11.2) = 4.3;
 
     date0 = datetime(2018, 4, 5);              % date of 1st case (simulation may start earlier than this because date of infection may be earlier)
     date1 = datetime(2018, 8, 20);           % End date for simulation 
@@ -77,9 +80,9 @@ elseif outbreakLbl == "ebola_DRC_2018"
     par.tRampStart = datetime(2018, 5, 8); % start of intervention-related change in Rt
     par.rampDur = 7;                    % duration of intervention-related change in Rt
 
-    par.sigmaR = 0.05;                % S.D. in random walk step for log Rt
-    par.sigmaR_control = 0.2;          % S.D. in random walk step for log Rt during rapid intervention-associated change
-    par.deltaR_control = -0.1;         % Mean of random walk step for log Rt during rapid intervention-associated change
+    par.sigmaR = sigmaR_scenarios(iScenario);                % S.D. in random walk step for log Rt
+    par.sigmaR_control = 0.2;                                % S.D. in random walk step for log Rt during rapid intervention-associated change
+    par.deltaR_control = deltaR_scenarios(iScenario);         % Mean of random walk step for log Rt during rapid intervention-associated change
 
     par.obsModel = "negbin";     %  binomial daily observation model 
     par.kObs = inf;             % overdispersion parameter for daily observed cases (set to inf for a Poisson distribution, ignored if par.obsModel is "bin")

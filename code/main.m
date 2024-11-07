@@ -9,10 +9,10 @@ dataFolder = "../processed_data/";
 resultsFolder = "../results/";
 
 % Outbreak labels (processed data files should be in the form label_processed.csv)
-outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018", "ebola_DRC_2018"];
-sensitivityFlag = [0, 0, 1];
+outbreakLbl = ["covid_NZ_2020", "ebola_DRC_2018"];%, "ebola_DRC_2018"];
+sensitivityFlag = [0, 0];%, 1];
 
-nScenarios = 8;
+nScenarios = 12;
 
 % Some computational settings:
 ignoreDays = 30;        % for calculating time at which 95% is reached, ignore this many days at the start of the outbreak

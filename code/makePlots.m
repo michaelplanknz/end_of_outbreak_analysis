@@ -108,8 +108,8 @@ for iOutbreak = 1:2
     end
     ylabel('daily local case notifications')
     yyaxis right
-    [x, y] = getFillArgs(t(iMinPlot:end), pNoInf_quantiles(1, iMinPlot:end), pNoInf_quantiles(3, iMinPlot:end) );
-    fill(x, y, lightBlue, 'LineStyle', 'none' )
+    % [x, y] = getFillArgs(t(iMinPlot:end), pNoInf_quantiles(1, iMinPlot:end), pNoInf_quantiles(3, iMinPlot:end) );
+    % fill(x, y, lightBlue, 'LineStyle', 'none' )
     plot(t(iMinPlot:end), pNoInf(iMinPlot:end), 'b-')    
     ylabel('end of outbreak probability (P_0)')
     xline(par.tRampStart, 'k:');
@@ -279,8 +279,9 @@ for iOutbreak = 1:2
     
     scenarioSet{1} = 1:6;
     scenarioSet{2} = [1 7 8];
-    
-    for iSet = 1:2
+    scenarioSet{3} = [1 9 10 11 12];
+
+    for iSet = 1:3
         h = figure(iFig);
         h.Position = [     255          41        1128        179*length(scenarioSet{iSet}) ];
         tiledlayout(length(scenarioSet{iSet}), 3, "TileSpacing", "Compact");
