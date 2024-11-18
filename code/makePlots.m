@@ -270,13 +270,15 @@ end
 
 
 
-% Additional figures
-ttls = ["(a)", "(b)", "(c)", "(d)", "(e)", "(f)"];
+% Supplementary figures
+iFig = 1;
+plotTitles = ["(a)", "(b)", "(c)", "(d)", "(e)", "(f)"];
 
 for iOutbreak = 1:2
     fNameData = sprintf('%s_processed.csv', outbreakLbl(iOutbreak));
     processed = readtable(dataFolder+fNameData);
     
+    % Set of scenario numbers to include in each plot
     scenarioSet{1} = 1:6;
     scenarioSet{2} = [1 7 8];
     scenarioSet{3} = [1 9 10 11 12];
@@ -326,7 +328,7 @@ for iOutbreak = 1:2
             ylabel('daily local infections')
             xlim([processed.t(1)-1, t(end) ]);
             grid on
-            title(ttls(ii));
+            title(plotTitles(ii));
         
             nexttile;
             yyaxis left
@@ -356,7 +358,7 @@ for iOutbreak = 1:2
     
         end
         if saveFlag 
-          saveas(h, figuresFolder+sprintf('fig%i.png', iFig));
+          saveas(h, figuresFolder+sprintf('figS%i.png', iFig));
         end
         iFig = iFig+1;
     end
