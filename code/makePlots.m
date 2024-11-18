@@ -5,7 +5,7 @@ close all
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plotting
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-saveFlag = true;
+saveFlag = false;
 
 dataFolder = "../processed_data/";
 resultsFolder = "../results/";
@@ -271,7 +271,7 @@ end
 
 
 % Supplementary figures
-iFig = 1;
+nMainFigs = iFig-1;
 plotTitles = ["(a)", "(b)", "(c)", "(d)", "(e)", "(f)"];
 
 for iOutbreak = 1:2
@@ -358,7 +358,7 @@ for iOutbreak = 1:2
     
         end
         if saveFlag 
-          saveas(h, figuresFolder+sprintf('figS%i.png', iFig));
+          saveas(h, figuresFolder+sprintf('figS%i.png', iFig-nMainFigs));
         end
         iFig = iFig+1;
     end

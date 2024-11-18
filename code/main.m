@@ -5,6 +5,10 @@ close all
 % Setup
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% For reproducibility
+rng(40209);
+
+% Folders for data and results
 dataFolder = "../processed_data/";
 resultsFolder = "../results/";
 
