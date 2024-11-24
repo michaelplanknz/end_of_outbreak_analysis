@@ -4,7 +4,11 @@ Data and code to reproduce the results in the article ``Robust estimation of end
 
 A preprint of the article is available at 
 [https://doi.org/10.48550/arXiv.2409.16531](
-https://doi.org/10.48550/arXiv.2409.16531). Results in this version were generated using the version of the repository tagged v1.0.
+https://doi.org/10.48550/arXiv.2409.16531). 
+
+Results in version 1 [v1] of the preprint were generated using the version of the repository tagged v1.0. 
+
+Results in version 2 [v2] were generated using the version of the repository tagged v2.0.
 
 # How to use this repository
 
