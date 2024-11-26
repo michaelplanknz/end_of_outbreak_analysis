@@ -1,6 +1,6 @@
 # Estimating end-of-outbreak probability
 
-Data and code to reproduce the results in the article ``Robust estimation of end-of-outbreak probabilities in the presence of case underascertainment and reporting lags''. 
+Data and code to reproduce the results in the article "Robust estimation of end-of-outbreak probabilities in the presence of case underascertainment and reporting lags". 
 
 A preprint of the article is available at 
 [https://doi.org/10.48550/arXiv.2409.16531](
