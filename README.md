@@ -1,6 +1,6 @@
-# Estimating end-of-outbreak probability
+# Estimation of end-of-outbreak probabilities in the presence of case underascertainment and reporting lags
 
-Data and code to reproduce the results in the article "Robust estimation of end-of-outbreak probabilities in the presence of case underascertainment and reporting lags". 
+Data and code to reproduce the results in the article "Estimation of end-of-outbreak probabilities in the presence of case underascertainment and reporting lags" by Plank et al. 
 
 A preprint of the article is available at 
 [https://doi.org/10.48550/arXiv.2409.16531](
@@ -8,7 +8,7 @@ https://doi.org/10.48550/arXiv.2409.16531).
 
 Results in version 1 [v1] of the preprint were generated using the version of the repository tagged v1.0. 
 
-Results in version 2 [v2] of the preprint were generated using the version of the repository tagged v2.0.
+Results in version 2 [v2] of the preprint and the final published article were generated using the version of the repository tagged v2.0.
 
 # Abstract
 
